@@ -28,3 +28,7 @@ node_modules/
 # Test and coverage
 TestResults/
 coverage/
+
+# Local documentation assets
+*.pdf
+*.docx
