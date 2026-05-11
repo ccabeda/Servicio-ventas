@@ -20,6 +20,11 @@ public class RegistrarMovimientoCajaHandler(
         var caja = await cajaRepositoryQuery.GetByIdAsync(command.CajaId)
             ?? throw new KeyNotFoundException("Caja no encontrada.");
 
+        if (!command.EsAdmin && caja.UsuarioAperturaId != command.UsuarioId)
+        {
+            throw new ServicioVentas.Application.Exceptions.ForbiddenAccessException("No tienes permisos para registrar movimientos en esa caja.");
+        }
+
         if (!caja.Abierta)
         {
             throw new InvalidOperationException("No se pueden registrar movimientos en una caja cerrada.");

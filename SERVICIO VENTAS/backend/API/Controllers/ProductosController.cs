@@ -31,6 +31,7 @@ public class ProductosController(
         return Ok(producto);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ProductoDto>> Create([FromBody] CreateProductoDto request)
     {
@@ -38,6 +39,7 @@ public class ProductosController(
         return CreatedAtAction(nameof(GetById), new { id = producto.Id }, producto);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProductoDto>> Update(int id, [FromBody] UpdateProductoDto request)
     {
@@ -50,6 +52,7 @@ public class ProductosController(
         return Ok(producto);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

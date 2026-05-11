@@ -8,9 +8,9 @@ namespace ServicioVentas.Infrastructure.Repository.Query;
 
 public class ReporteRepositoryQuery(ServicioVentasDbContext context) : IReporteRepositoryQuery
 {
-    public async Task<ResumenVentasDto> GetResumenVentasAsync(DateTime? fechaDesde, DateTime? fechaHasta)
+    public async Task<ResumenVentasDto> GetResumenVentasAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? usuarioId)
     {
-        var ventas = FiltrarVentas(fechaDesde, fechaHasta, null, null, null);
+        var ventas = FiltrarVentas(fechaDesde, fechaHasta, null, usuarioId, null);
 
         var resumenBase = await ventas
             .GroupBy(_ => 1)
@@ -71,9 +71,9 @@ public class ReporteRepositoryQuery(ServicioVentasDbContext context) : IReporteR
             .ToListAsync();
     }
 
-    public async Task<List<ProductoMasVendidoDto>> GetProductosMasVendidosAsync(DateTime? fechaDesde, DateTime? fechaHasta, int top)
+    public async Task<List<ProductoMasVendidoDto>> GetProductosMasVendidosAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? usuarioId, int top)
     {
-        return await FiltrarVentas(fechaDesde, fechaHasta, null, null, null)
+        return await FiltrarVentas(fechaDesde, fechaHasta, null, usuarioId, null)
             .SelectMany(x => x.Detalles)
             .GroupBy(d => new { d.ProductoId, d.Producto.Nombre })
             .Select(g => new ProductoMasVendidoDto

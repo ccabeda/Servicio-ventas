@@ -7,7 +7,12 @@ namespace ServicioVentas.Infrastructure.Repository.Query;
 
 public class UsuarioRepositoryQuery(ServicioVentasDbContext context) : IUsuarioRepositoryQuery
 {
-    public async Task<List<Usuario>> GetAllAsync() => await context.Usuarios.AsNoTracking().OrderBy(x => x.NombreUsuario).ToListAsync();
+    public async Task<List<Usuario>> GetAllAsync() => await context.Usuarios
+        .AsNoTracking()
+        .Where(x => x.Activo)
+        .OrderBy(x => x.NombreUsuario)
+        .ToListAsync();
+
     public async Task<Usuario?> GetByIdAsync(int id) => await context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
     public async Task<Usuario?> GetByNombreUsuarioAsync(string nombreUsuario) => await context.Usuarios.AsNoTracking().FirstOrDefaultAsync(x => x.NombreUsuario == nombreUsuario);
     public async Task<bool> ExistsByNombreUsuarioAsync(string nombreUsuario, int? excludeId = null) =>

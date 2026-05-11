@@ -7,6 +7,11 @@ namespace ServicioVentas.Infrastructure.Repository.Query;
 
 public class ClienteRepositoryQuery(ServicioVentasDbContext context) : IClienteRepositoryQuery
 {
-    public async Task<List<Cliente>> GetAllAsync() => await context.Clientes.AsNoTracking().OrderBy(x => x.Nombre).ToListAsync();
+    public async Task<List<Cliente>> GetAllAsync() => await context.Clientes
+        .AsNoTracking()
+        .Where(x => x.Activo)
+        .OrderBy(x => x.Nombre)
+        .ToListAsync();
+
     public async Task<Cliente?> GetByIdAsync(int id) => await context.Clientes.FirstOrDefaultAsync(x => x.Id == id);
 }

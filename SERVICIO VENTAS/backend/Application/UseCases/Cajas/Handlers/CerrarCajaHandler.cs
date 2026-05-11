@@ -20,6 +20,11 @@ public class CerrarCajaHandler(
         var caja = await cajaRepositoryQuery.GetByIdAsync(command.CajaId)
             ?? throw new KeyNotFoundException("Caja no encontrada.");
 
+        if (!command.EsAdmin && caja.UsuarioAperturaId != command.UsuarioId)
+        {
+            throw new ServicioVentas.Application.Exceptions.ForbiddenAccessException("No tienes permisos para cerrar esa caja.");
+        }
+
         if (!caja.Abierta)
         {
             throw new InvalidOperationException("La caja ya se encuentra cerrada.");

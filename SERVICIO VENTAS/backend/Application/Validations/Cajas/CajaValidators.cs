@@ -10,9 +10,6 @@ public class AbrirCajaDtoValidator : AbstractValidator<AbrirCajaDto>
     {
         RuleFor(x => x.MontoInicial)
             .GreaterThanOrEqualTo(0).WithMessage("El monto inicial no puede ser negativo.");
-
-        RuleFor(x => x.UsuarioAperturaId)
-            .GreaterThan(0);
     }
 }
 
@@ -22,9 +19,6 @@ public class CerrarCajaDtoValidator : AbstractValidator<CerrarCajaDto>
     {
         RuleFor(x => x.MontoFinal)
             .GreaterThanOrEqualTo(0);
-
-        RuleFor(x => x.UsuarioCierreId)
-            .GreaterThan(0);
     }
 }
 
@@ -32,9 +26,6 @@ public class RegistrarMovimientoCajaDtoValidator : AbstractValidator<RegistrarMo
 {
     public RegistrarMovimientoCajaDtoValidator()
     {
-        RuleFor(x => x.UsuarioId)
-            .GreaterThan(0);
-
         RuleFor(x => x.Monto)
             .GreaterThan(0).WithMessage("El monto del movimiento debe ser mayor a cero.");
 

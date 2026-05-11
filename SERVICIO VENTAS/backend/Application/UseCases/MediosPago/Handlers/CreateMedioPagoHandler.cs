@@ -14,10 +14,22 @@ public class CreateMedioPagoHandler(IMapper mapper, IMedioPagoRepositoryCommand 
     {
         var request = command.MedioPago;
         var nombre = request.Nombre.Trim();
-        if (await queryRepo.ExistsByNombreAsync(nombre))
+        var existente = await queryRepo.GetByNombreAsync(nombre);
+
+        if (existente is not null && existente.Activo)
             throw new InvalidOperationException("Ya existe un medio de pago con ese nombre.");
 
+        if (existente is not null)
+        {
+            existente.Nombre = nombre;
+            existente.Activo = true;
+            await commandRepo.UpdateAsync(existente);
+            await commandRepo.SaveChangesAsync();
+            return mapper.Map<MedioPagoDto>(existente);
+        }
+
         var medioPago = mapper.Map<MedioPago>(request);
+        medioPago.Nombre = nombre;
         await commandRepo.AddAsync(medioPago);
         await commandRepo.SaveChangesAsync();
         return mapper.Map<MedioPagoDto>(medioPago);

@@ -1,0 +1,144 @@
+@media (max-width: 1140px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .reportes-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .reportes-toolbar-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ventas-layout,
+    .dashboard-grid,
+    .split-forms {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 920px) {
+    .auth-shell {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(320px, 84vw);
+        transform: translateX(-102%);
+        transition: transform 180ms ease;
+        z-index: 25;
+    }
+
+    .app-shell.menu-open .sidebar {
+        transform: translateX(0);
+    }
+
+    .mobile-only {
+        display: inline-flex;
+    }
+
+    .mobile-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(32, 23, 17, 0.36);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+        z-index: 20;
+    }
+
+    .app-shell.menu-open .mobile-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .workspace {
+        padding: 18px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .topbar-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .hero-actions {
+        grid-auto-flow: row;
+        width: 100%;
+    }
+
+    .config-grid,
+    .modal-grid-2,
+    .quick-meta,
+    .cart-meta,
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reportes-toolbar-filters,
+    .reportes-preset-buttons {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .auth-brand,
+    .auth-form-panel,
+    .panel,
+    .hero-panel,
+    .modal-card {
+        padding: 18px;
+        border-radius: 22px;
+    }
+
+    .auth-help,
+    .toolbar-row,
+    .topbar-right,
+    .product-card,
+    .cart-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .product-card {
+        grid-template-columns: 1fr;
+    }
+
+    .data-table {
+        min-width: 620px;
+    }
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #ticketContent,
+    #ticketContent * {
+        visibility: visible;
+    }
+
+    #ticketContent {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 12px;
+        border: 0;
+        box-shadow: none;
+        background: white;
+    }
+}

@@ -37,7 +37,7 @@ public class AbrirCajaHandler(
 
         var movimiento = new MovimientoCaja
         {
-            CajaId = caja.Id,
+            Caja = caja,
             Fecha = DateTime.UtcNow,
             Tipo = TipoMovimientoCaja.Apertura,
             Concepto = "Apertura de caja",

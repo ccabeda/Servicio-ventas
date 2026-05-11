@@ -26,6 +26,7 @@ public class ClientesController(
         return Ok(await getByIdHandler.Handle(new GetClienteByIdQuery { Id = id }));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ClienteDto>> Create([FromBody] CreateClienteDto request)
     {
@@ -33,12 +34,14 @@ public class ClientesController(
         return CreatedAtAction(nameof(GetById), new { id = cliente.Id }, cliente);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ClienteDto>> Update(int id, [FromBody] UpdateClienteDto request)
     {
         return Ok(await updateHandler.Handle(new UpdateClienteCommand { Id = id, Cliente = request }));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

@@ -11,6 +11,7 @@ public class ProductoRepositoryQuery(ServicioVentasDbContext context) : IProduct
     {
         return await context.Productos
             .AsNoTracking()
+            .Where(x => x.Activo)
             .OrderBy(x => x.Nombre)
             .ToListAsync();
     }

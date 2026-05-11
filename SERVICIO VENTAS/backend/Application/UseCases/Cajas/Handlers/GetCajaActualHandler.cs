@@ -11,6 +11,11 @@ public class GetCajaActualHandler(IMapper mapper, ICajaRepositoryQuery cajaRepos
     public async Task<CajaDto?> Handle(GetCajaActualQuery query)
     {
         var caja = await cajaRepositoryQuery.GetCajaAbiertaAsync();
-        return caja is null ? null : mapper.Map<CajaDto>(caja);
+        if (caja is null)
+            return null;
+
+        var cajaDto = mapper.Map<CajaDto>(caja);
+        cajaDto.SaldoSistema = await cajaRepositoryQuery.GetSaldoSistemaByCajaIdAsync(caja.Id);
+        return cajaDto;
     }
 }

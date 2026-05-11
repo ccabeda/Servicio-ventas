@@ -10,7 +10,7 @@ public class GetProductosMasVendidosHandler(IReporteRepositoryQuery reporteRepos
     public async Task<List<ProductoMasVendidoDto>> Handle(GetProductosMasVendidosQuery query)
     {
         Validar(query);
-        return await reporteRepositoryQuery.GetProductosMasVendidosAsync(query.FechaDesde, query.FechaHasta, query.Top);
+        return await reporteRepositoryQuery.GetProductosMasVendidosAsync(query.FechaDesde, query.FechaHasta, query.UsuarioId, query.Top);
     }
 
     private static void Validar(GetProductosMasVendidosQuery query)

@@ -26,6 +26,7 @@ public class ConfiguracionesNegocioController(
         return Ok(await getByIdHandler.Handle(new GetConfiguracionNegocioByIdQuery { Id = id }));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ConfiguracionNegocioDto>> Create([FromBody] CreateConfiguracionNegocioDto request)
     {
@@ -33,12 +34,14 @@ public class ConfiguracionesNegocioController(
         return CreatedAtAction(nameof(GetById), new { id = configuracion.Id }, configuracion);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ConfiguracionNegocioDto>> Update(int id, [FromBody] UpdateConfiguracionNegocioDto request)
     {
         return Ok(await updateHandler.Handle(new UpdateConfiguracionNegocioCommand { Id = id, Configuracion = request }));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

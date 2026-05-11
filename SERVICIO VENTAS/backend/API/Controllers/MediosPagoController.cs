@@ -26,6 +26,7 @@ public class MediosPagoController(
         return Ok(await getByIdHandler.Handle(new GetMedioPagoByIdQuery { Id = id }));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<MedioPagoDto>> Create([FromBody] CreateMedioPagoDto request)
     {
@@ -33,12 +34,14 @@ public class MediosPagoController(
         return CreatedAtAction(nameof(GetById), new { id = medioPago.Id }, medioPago);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<MedioPagoDto>> Update(int id, [FromBody] UpdateMedioPagoDto request)
     {
         return Ok(await updateHandler.Handle(new UpdateMedioPagoCommand { Id = id, MedioPago = request }));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

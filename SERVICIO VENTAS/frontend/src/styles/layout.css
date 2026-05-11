@@ -1,0 +1,335 @@
+.app-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 24px 20px;
+    border-right: 1px solid rgba(38, 25, 15, 0.08);
+    background: rgba(255, 249, 240, 0.68);
+    backdrop-filter: blur(18px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+body.theme-dark .sidebar {
+    background: rgba(18, 23, 30, 0.84);
+    border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-top,
+.sidebar-brand,
+.topbar,
+.panel-header,
+.toolbar-row,
+.hero-panel,
+.modal-head,
+.modal-actions,
+.topbar-left,
+.topbar-right,
+.sidebar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.sidebar-brand {
+    justify-content: flex-start;
+}
+
+.brand-mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--primary), #ec7f37);
+    color: white;
+    font-weight: 800;
+}
+
+.sidebar-nav {
+    display: grid;
+    gap: 8px;
+}
+
+.nav-link {
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+    padding: 14px 16px;
+    text-align: left;
+    transition: 180ms ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: linear-gradient(135deg, rgba(20, 58, 82, 0.12), rgba(200, 75, 49, 0.12));
+    color: var(--text);
+    transform: translateX(2px);
+}
+
+body.theme-dark .nav-link {
+    color: rgba(242, 245, 247, 0.74);
+}
+
+body.theme-dark .nav-link:hover,
+body.theme-dark .nav-link.active {
+    background: linear-gradient(135deg, rgba(127, 179, 209, 0.18), rgba(224, 106, 68, 0.16));
+    color: #ffffff;
+}
+
+.user-card {
+    width: 100%;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(20, 58, 82, 0.08);
+}
+
+body.theme-dark .user-card {
+    background: rgba(127, 179, 209, 0.1);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.workspace {
+    padding: 28px;
+    display: grid;
+    gap: 22px;
+}
+
+.topbar {
+    padding: 10px 0 6px;
+}
+
+.topbar h2,
+.panel-header h3,
+.hero-panel h3,
+.modal-head h3 {
+    margin: 4px 0 0;
+    font-size: 1.7rem;
+}
+
+.hero-panel,
+.panel {
+    padding: 24px;
+}
+
+.hero-panel {
+    background:
+        linear-gradient(120deg, rgba(255, 249, 240, 0.98), rgba(247, 236, 223, 0.96)),
+        linear-gradient(120deg, transparent, rgba(200, 75, 49, 0.1));
+    border: 1px solid rgba(200, 75, 49, 0.12);
+}
+
+body.theme-dark .hero-panel {
+    background:
+        linear-gradient(120deg, rgba(29, 37, 48, 0.98), rgba(24, 30, 39, 0.96)),
+        linear-gradient(120deg, transparent, rgba(224, 106, 68, 0.08));
+    border-color: rgba(224, 106, 68, 0.2);
+}
+
+.hero-panel p {
+    max-width: 54rem;
+    color: var(--muted);
+}
+
+.hero-actions,
+.inline-badges,
+.quick-meta,
+.cart-total-box,
+.split-forms,
+.config-grid,
+.stats-grid,
+.dashboard-grid,
+.ventas-layout,
+.toolbar-stack,
+.cart-meta {
+    display: grid;
+    gap: 16px;
+}
+
+.hero-actions {
+    grid-auto-flow: column;
+    width: fit-content;
+}
+
+.stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ventas-layout {
+    grid-template-columns: 1.2fr 0.9fr;
+    align-items: stretch;
+}
+
+.ventas-products,
+.ventas-cart {
+    display: flex;
+    flex-direction: column;
+}
+
+.toolbar-stack {
+    margin-bottom: 18px;
+}
+
+.quick-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cart-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 4px;
+}
+
+.field-full {
+    grid-column: 1 / -1;
+}
+
+.toolbar-row {
+    flex-wrap: wrap;
+}
+
+.toolbar-form {
+    align-items: end;
+}
+
+.align-end {
+    align-self: end;
+}
+
+.reportes-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 18px;
+}
+
+.reportes-toolbar-group {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(38, 25, 15, 0.08);
+    background: rgba(255, 255, 255, 0.58);
+}
+
+body.theme-dark .reportes-toolbar-group {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.reportes-toolbar-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.reportes-toolbar-presets,
+.reportes-toolbar-export {
+    align-content: start;
+}
+
+.reportes-preset-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.reportes-apply-btn,
+.reportes-export-btn {
+    min-width: 0;
+}
+
+.reportes-apply-btn {
+    min-width: 118px;
+    width: auto;
+    justify-self: start;
+    align-self: end;
+}
+
+.reportes-export-btn {
+    width: auto;
+}
+
+.split-forms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.config-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.modal-root {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    z-index: 30;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(32, 23, 17, 0.46);
+    backdrop-filter: blur(6px);
+}
+
+.modal-card {
+    position: relative;
+    width: min(720px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    padding: 24px;
+}
+
+.modal-form {
+    display: grid;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.confirm-card {
+    width: min(460px, calc(100vw - 24px));
+}
+
+.confirm-body {
+    margin-top: 16px;
+    color: var(--muted);
+}
+
+.modal-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.modal-actions {
+    margin-top: 8px;
+    justify-content: flex-end;
+}
+
+.ticket-card {
+    width: min(520px, calc(100vw - 24px));
+}
+
+.mobile-only,
+.mobile-backdrop {
+    display: none;
+}

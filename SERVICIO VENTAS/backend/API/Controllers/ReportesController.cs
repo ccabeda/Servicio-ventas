@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using ServicioVentas.Application.DTOs.Reportes;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.UseCases.Reportes.Queries;
@@ -20,7 +21,8 @@ public class ReportesController(
         var reporte = await getResumenVentasHandler.Handle(new GetResumenVentasQuery
         {
             FechaDesde = fechaDesde,
-            FechaHasta = fechaHasta
+            FechaHasta = fechaHasta,
+            UsuarioId = EsAdmin() ? null : GetCurrentUserId()
         });
 
         return Ok(reporte);
@@ -39,7 +41,7 @@ public class ReportesController(
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
             CajaId = cajaId,
-            UsuarioId = usuarioId,
+            UsuarioId = EsAdmin() ? usuarioId : GetCurrentUserId(),
             MedioPagoId = medioPagoId
         });
 
@@ -56,9 +58,23 @@ public class ReportesController(
         {
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
+            UsuarioId = EsAdmin() ? null : GetCurrentUserId(),
             Top = top
         });
 
         return Ok(reporte);
     }
+
+    private int GetCurrentUserId()
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("Usuario no autenticado.");
+
+        if (!int.TryParse(userIdValue, out var userId))
+            throw new UnauthorizedAccessException("Token invalido.");
+
+        return userId;
+    }
+
+    private bool EsAdmin() => User.IsInRole("Admin");
 }

@@ -10,7 +10,7 @@ public class GetResumenVentasHandler(IReporteRepositoryQuery reporteRepositoryQu
     public async Task<ResumenVentasDto> Handle(GetResumenVentasQuery query)
     {
         ValidarRango(query.FechaDesde, query.FechaHasta);
-        return await reporteRepositoryQuery.GetResumenVentasAsync(query.FechaDesde, query.FechaHasta);
+        return await reporteRepositoryQuery.GetResumenVentasAsync(query.FechaDesde, query.FechaHasta, query.UsuarioId);
     }
 
     private static void ValidarRango(DateTime? fechaDesde, DateTime? fechaHasta)

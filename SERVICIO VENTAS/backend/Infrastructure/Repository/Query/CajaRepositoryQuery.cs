@@ -20,6 +20,22 @@ public class CajaRepositoryQuery(ServicioVentasDbContext context) : ICajaReposit
         return await context.Cajas.FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<List<Caja>> GetHistorialAsync(int? usuarioAperturaId = null)
+    {
+        var query = context.Cajas
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (usuarioAperturaId.HasValue)
+        {
+            query = query.Where(x => x.UsuarioAperturaId == usuarioAperturaId.Value);
+        }
+
+        return await query
+            .OrderByDescending(x => x.FechaApertura)
+            .ToListAsync();
+    }
+
     public async Task<List<MovimientoCaja>> GetMovimientosByCajaIdAsync(int cajaId)
     {
         return await context.MovimientosCaja
