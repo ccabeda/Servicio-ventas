@@ -1,6 +1,6 @@
 # Servicio Ventas
 
-Sistema POS web local para pequenos comercios, orientado a ventas rapidas, control de stock, manejo de caja y uso en red local.
+Sistema POS web local para pequeños comercios, orientado a ventas rapidas, control de stock, manejo de caja y uso en red local.
 
 ## Stack actual
 
