@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using ServicioVentas.API.Services;
 using ServicioVentas.Application.DTOs.Ventas;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.UseCases.Ventas.Commands;
@@ -14,40 +14,44 @@ namespace ServicioVentas.API.Controllers;
 public class VentasController(
     ICreateVentaHandler createHandler,
     IGetVentasHandler getAllHandler,
-    IGetVentaByIdHandler getByIdHandler) : ControllerBase
+    IGetVentaByIdHandler getByIdHandler,
+    ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<VentaDto>>> GetAll()
     {
-        var ventas = await getAllHandler.Handle(new GetVentasQuery());
-        return Ok(EsAdmin() ? ventas : ventas.Where(v => v.UsuarioId == GetCurrentUserId()).ToList());
+        return Ok(await getAllHandler.Handle(new GetVentasQuery
+        {
+            UsuarioId = currentUser.IsAdmin ? null : currentUser.UserId
+        }));
+    }
+
+    [HttpGet("paginado")]
+    public async Task<IActionResult> GetPaged([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 20)
+    {
+        return Ok(await getAllHandler.HandlePaged(new GetVentasQuery
+        {
+            UsuarioId = currentUser.IsAdmin ? null : currentUser.UserId,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        }));
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<VentaDto>> GetById(int id)
     {
         var venta = await getByIdHandler.Handle(new GetVentaByIdQuery { Id = id });
-        return !EsAdmin() && venta.UsuarioId != GetCurrentUserId() ? Forbid() : Ok(venta);
+        return !currentUser.IsAdmin && venta.UsuarioId != currentUser.UserId ? Forbid() : Ok(venta);
     }
 
     [HttpPost]
     public async Task<ActionResult<VentaDto>> Create([FromBody] CreateVentaDto request)
     {
-        request.UsuarioId = GetCurrentUserId();
-        var venta = await createHandler.Handle(new CreateVentaCommand { Venta = request });
+        var venta = await createHandler.Handle(new CreateVentaCommand
+        {
+            UsuarioId = currentUser.UserId,
+            Venta = request
+        });
         return CreatedAtAction(nameof(GetById), new { id = venta.Id }, venta);
     }
-
-    private int GetCurrentUserId()
-    {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("Usuario no autenticado.");
-
-        if (!int.TryParse(userIdValue, out var userId))
-            throw new UnauthorizedAccessException("Token invalido.");
-
-        return userId;
-    }
-
-    private bool EsAdmin() => User.IsInRole("Admin");
 }

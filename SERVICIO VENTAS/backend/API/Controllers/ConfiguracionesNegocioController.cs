@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServicioVentas.Application.DTOs.Configuraciones;
 using ServicioVentas.Application.IHandlers;
+using ServicioVentas.Application.Security;
 using ServicioVentas.Application.UseCases.Configuraciones.Commands;
 using ServicioVentas.Application.UseCases.Configuraciones.Queries;
 
@@ -26,7 +27,7 @@ public class ConfiguracionesNegocioController(
         return Ok(await getByIdHandler.Handle(new GetConfiguracionNegocioByIdQuery { Id = id }));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = PermisosSistema.ConfiguracionGestionar)]
     [HttpPost]
     public async Task<ActionResult<ConfiguracionNegocioDto>> Create([FromBody] CreateConfiguracionNegocioDto request)
     {
@@ -34,14 +35,14 @@ public class ConfiguracionesNegocioController(
         return CreatedAtAction(nameof(GetById), new { id = configuracion.Id }, configuracion);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = PermisosSistema.ConfiguracionGestionar)]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ConfiguracionNegocioDto>> Update(int id, [FromBody] UpdateConfiguracionNegocioDto request)
     {
         return Ok(await updateHandler.Handle(new UpdateConfiguracionNegocioCommand { Id = id, Configuracion = request }));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = PermisosSistema.ConfiguracionGestionar)]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

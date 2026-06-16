@@ -8,5 +8,7 @@ public class CreateProductoDto
     public decimal Precio { get; set; }
     public decimal Costo { get; set; }
     public decimal Stock { get; set; }
+    public int? CategoriaId { get; set; }
+    public int? MarcaId { get; set; }
     public bool Activo { get; set; } = true;
 }

@@ -11,17 +11,98 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .products-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .products-search {
+        grid-column: 1 / -1;
+    }
+
+    .products-filter-button {
+        width: 100%;
+    }
+
     .ventas-layout,
     .dashboard-grid,
-    .split-forms {
+    .split-forms,
+    .home-action-grid {
         grid-template-columns: 1fr;
+    }
+
+    .auth-shell {
+        grid-template-columns: 1fr;
+        width: min(100vw - 36px, 860px);
+        padding: 86px 42px 42px;
+    }
+
+    .auth-brand {
+        min-height: auto;
+        gap: 34px;
+    }
+
+    .auth-brand-main {
+        text-align: center;
+    }
+
+    .cajago-logo {
+        justify-content: center;
+    }
+
+    .auth-brand p {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .auth-form-panel {
+        width: min(100%, 560px);
+        justify-self: center;
+    }
+
+    .auth-feature-grid {
+        max-width: 680px;
+        margin: 0 auto;
     }
 }
 
 @media (max-width: 920px) {
     .auth-shell {
         grid-template-columns: 1fr;
-        padding: 18px;
+        width: min(100vw - 28px, 720px);
+        min-height: auto;
+        margin: 14px auto;
+        padding: 72px 24px 28px;
+        gap: 34px;
+    }
+
+    .auth-form-panel {
+        justify-self: stretch;
+        width: 100%;
+    }
+
+    .auth-brand {
+        min-height: auto;
+        gap: 32px;
+    }
+
+    .auth-feature-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .auth-feature {
+        grid-template-columns: auto 1fr;
+        justify-items: start;
+        text-align: left;
+        column-gap: 14px;
+    }
+
+    .auth-feature-icon {
+        grid-row: span 2;
+    }
+
+    .auth-feature span {
+        max-width: none;
     }
 
     .app-shell {
@@ -32,7 +113,7 @@
         position: fixed;
         inset: 0 auto 0 0;
         width: min(320px, 84vw);
-        transform: translateX(-102%);
+        transform: translateX(-100vw);
         transition: transform 180ms ease;
         z-index: 25;
     }
@@ -42,6 +123,12 @@
     }
 
     .mobile-only {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-btn.mobile-only {
         display: inline-flex;
     }
 
@@ -62,17 +149,77 @@
     }
 
     .workspace {
-        padding: 18px;
+        padding: 0 18px 22px;
     }
 
+
     .topbar {
-        align-items: flex-start;
-        flex-direction: column;
+        height: 88px;
+        min-height: 88px;
+        margin: 0 -18px;
+        padding: 12px 18px;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .topbar-left {
+        width: auto;
+        flex: 1 1 220px;
+        min-width: 0;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .topbar-left h2 {
+        margin: 0 0 4px;
+        font-size: 1.08rem;
+    }
+
+    .topbar-left span {
+        font-size: 0.94rem;
+    }
+
+    #topbarDateTime {
+        font-size: 1rem;
     }
 
     .topbar-right {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        flex: 0 1 auto;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    .topbar-right .theme-toggle {
+        order: initial;
+    }
+
+    .topbar-user {
+        min-width: 0;
+    }
+
+    .topbar-pill {
+        max-width: 142px;
+        min-height: 40px;
+        padding: 0 11px;
+        font-size: 0.84rem;
+    }
+
+    .topbar .status-pill {
+        width: 132px;
+        min-width: 0;
+    }
+
+    .topbar-select {
+        width: 104px;
+    }
+
+    .topbar-user {
+        width: 126px;
     }
 
     .hero-actions {
@@ -89,13 +236,71 @@
     }
 
     .reportes-toolbar-filters,
-    .reportes-preset-buttons {
+    .reportes-preset-buttons,
+    .products-filters,
+    .home-action-grid {
         grid-template-columns: 1fr;
+    }
+
+    .products-head {
+        flex-direction: column;
+    }
+
+    .products-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .settings-tabs {
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .ticket-preview-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-tabs button {
+        flex: 0 0 auto;
+        padding: 0 18px;
+    }
+
+    .settings-layout,
+    .business-settings-layout,
+    .settings-split,
+    .settings-fields-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-card-wide,
+    .settings-card-full,
+    .business-main-card,
+    .business-side-panel {
+        grid-column: 1;
+    }
+
+    .business-side-panel {
+        grid-row: auto;
+    }
+
+    .settings-split > * + * {
+        border-left: 0;
+        border-top: 1px solid #dfe4ec;
+        padding-left: 0;
+        padding-top: 22px;
+    }
+
+    .home-modern {
+        min-height: auto;
+        padding: 24px;
+    }
+
+    .home-action-card {
+        min-height: 138px;
     }
 }
 
 @media (max-width: 640px) {
-    .auth-brand,
     .auth-form-panel,
     .panel,
     .hero-panel,
@@ -104,21 +309,223 @@
         border-radius: 22px;
     }
 
+    .auth-shell {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        padding: 72px 16px 22px;
+        gap: 26px;
+    }
+
+    .auth-theme-control {
+        top: 20px;
+        right: 18px;
+    }
+
+    .cajago-logo {
+        gap: 12px;
+    }
+
+    .cajago-logo strong {
+        font-size: 2.25rem;
+    }
+
+    .cajago-mark-badge {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+    }
+
+    .cajago-mark {
+        width: 32px;
+        height: 32px;
+    }
+
+    .auth-brand h1 {
+        margin-top: 22px;
+        font-size: 2rem;
+        line-height: 1.08;
+    }
+
+    .auth-brand p {
+        font-size: 1rem;
+    }
+
+    .auth-feature-icon {
+        width: 58px;
+        height: 58px;
+    }
+
+    .auth-feature-icon svg {
+        width: 34px;
+        height: 34px;
+    }
+
+    .auth-feature strong {
+        font-size: 0.98rem;
+    }
+
+    .auth-feature span {
+        font-size: 0.92rem;
+    }
+
+    .auth-form-header h2 {
+        font-size: 1.55rem;
+    }
+
     .auth-help,
     .toolbar-row,
-    .topbar-right,
     .product-card,
-    .cart-item {
+    .products-actions,
+    .cart-item,
+    .home-modern-head,
+    .home-tip {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .home-modern {
+        padding: 18px;
+        min-height: auto;
+        border-radius: 12px;
+    }
+
+    .home-kicker {
+        margin-bottom: 20px;
+    }
+
+    .home-modern h3 {
+        font-size: 1.28rem;
+    }
+
+    .home-action-card {
+        min-height: 124px;
+        padding: 20px;
+    }
+
+    .home-action-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .home-action-card small {
+        max-width: calc(100% - 40px);
+    }
+
+    .home-tip {
+        min-height: auto;
+        padding: 14px 16px;
     }
 
     .product-card {
         grid-template-columns: 1fr;
     }
 
+    .products-head h3 {
+        font-size: 1.45rem;
+    }
+
+    .products-categories {
+        margin: 0 -2px;
+    }
+
+    .table-wrap {
+        overflow: visible;
+    }
+
     .data-table {
-        min-width: 620px;
+        min-width: 0;
+    }
+
+    .data-table:has(td[data-label]) thead {
+        display: none;
+    }
+
+    .data-table:has(td[data-label]),
+    .data-table:has(td[data-label]) tbody,
+    .data-table:has(td[data-label]) tr,
+    .data-table:has(td[data-label]) td {
+        display: block;
+        width: 100%;
+    }
+
+    .data-table:has(td[data-label]) tr {
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid #dfe4ec;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    body.theme-dark .data-table:has(td[data-label]) tr {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #151922;
+        box-shadow: none;
+    }
+
+    .data-table:has(td[data-label]) td {
+        min-height: 34px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(38, 25, 15, 0.07);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        text-align: right;
+    }
+
+    .data-table:has(td[data-label]) td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        text-align: left;
+    }
+
+    .data-table:has(td[data-label]) td:first-child {
+        padding-top: 0;
+    }
+
+    .data-table:has(td[data-label]) td:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .data-table:has(td[data-label]) td.actions-cell {
+        width: 100%;
+        white-space: normal;
+        justify-content: space-between;
+    }
+
+    .data-table:has(td[data-label]) td.actions-cell > button,
+    .data-table:has(td[data-label]) td.actions-cell > .btn {
+        margin-left: 6px;
+    }
+
+    .products-table {
+        min-width: 0;
+    }
+
+    .product-name-cell {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .table-pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .pagination-controls {
+        justify-content: space-between;
+    }
+
+    .business-form-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -140,5 +547,13 @@
         border: 0;
         box-shadow: none;
         background: white;
+    }
+
+    .ticket-copy + .ticket-copy {
+        break-before: page;
+        page-break-before: always;
+        margin-top: 0;
+        padding-top: 12px;
+        border-top: 0;
     }
 }

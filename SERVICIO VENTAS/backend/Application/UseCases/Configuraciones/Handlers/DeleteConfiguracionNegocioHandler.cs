@@ -9,7 +9,7 @@ public class DeleteConfiguracionNegocioHandler(IConfiguracionNegocioRepositoryQu
 {
     public async Task Handle(DeleteConfiguracionNegocioCommand command)
     {
-        var configuracion = await queryRepo.GetByIdAsync(command.Id) ?? throw new KeyNotFoundException("Configuracion no encontrada.");
+        var configuracion = await queryRepo.GetByIdAsync(command.Id) ?? throw new KeyNotFoundException("Configuración no encontrada.");
         await commandRepo.UpdateAsync(configuracion);
         await commandRepo.SaveChangesAsync();
     }

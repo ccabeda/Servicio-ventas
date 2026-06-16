@@ -11,6 +11,7 @@ public static partial class DependencyInjection
         services.AddAutoMapper(_ => { }, typeof(PosMappingProfile).Assembly);
 
         services
+            .AddAuditoriaHandlers()
             .AddAuthHandlers()
             .AddCajaHandlers()
             .AddClienteHandlers()

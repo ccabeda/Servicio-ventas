@@ -1,7 +1,7 @@
 import { formatDateTime, formatMoney, formatNumber } from "../../utils/formatters.js";
 import { escapeHtml } from "../../utils/html.js";
 import { saveJson } from "../../utils/storage.js";
-import { rowEmpty, setButtonLoading } from "../../utils/ui.js";
+import { rowSkeleton, rowState, setButtonLoading } from "../../utils/ui.js";
 
 export const reportesMethods = {
   renderReportesView() {
@@ -36,19 +36,26 @@ export const reportesMethods = {
           <strong>${formatMoney(item.GananciaEstimada)}</strong>
         </article>
       `).join("")
-      : `<div class="empty-state">No hay datos para ese periodo.</div>`;
+      : `<div class="empty-state">
+          <strong>No hay productos vendidos en este período</strong>
+          <small>Probá cambiar las fechas o registrar ventas para ver el ranking.</small>
+        </div>`;
 
     this.els.reportesVentasTableBody.innerHTML = this.state.reportes.ventas.length
       ? this.state.reportes.ventas.map(venta => `
         <tr>
-          <td>${formatDateTime(venta.Fecha)}</td>
-          <td>${escapeHtml(venta.UsuarioNombre)}</td>
-          <td>${escapeHtml(venta.MedioPagoNombre)}</td>
-          <td>${formatNumber(venta.UnidadesVendidas)}</td>
-          <td>${formatMoney(venta.Total)}</td>
+          <td data-label="Fecha">${formatDateTime(venta.Fecha)}</td>
+          <td data-label="Usuario">${escapeHtml(venta.UsuarioNombre)}</td>
+          <td data-label="Medio de pago">${escapeHtml(venta.MedioPagoNombre)}</td>
+          <td data-label="Unidades">${formatNumber(venta.UnidadesVendidas)}</td>
+          <td data-label="Total">${formatMoney(venta.Total)}</td>
         </tr>
       `).join("")
-      : rowEmpty("No hay ventas para ese periodo.", 5);
+      : rowState({
+        title: "No hay ventas para ese período",
+        description: "Ajustá el rango de fechas o registrá nuevas ventas para generar el reporte.",
+        colspan: 5
+      });
   },
 
   async handleReportFilter(event) {
@@ -60,6 +67,7 @@ export const reportesMethods = {
     this.state.reportFilters.fechaHasta = fechaHastaInput.value;
     saveJson(this.STORAGE_KEYS.reportFilters, this.state.reportFilters);
     setButtonLoading(submitButton, true, "Aplicando...");
+    this.els.reportesVentasTableBody.innerHTML = rowSkeleton(5, 5);
 
     try {
       await this.loadReportes();
@@ -98,16 +106,17 @@ export const reportesMethods = {
     fechaHastaInput.value = this.state.reportFilters.fechaHasta;
 
     setButtonLoading(activeButton, true, "Cargando...");
+    this.els.reportesVentasTableBody.innerHTML = rowSkeleton(5, 5);
 
     try {
       await this.loadReportes();
       this.renderReportesView();
-      const labels = { today: "hoy", week: "los ultimos 7 dias", month: "el mes actual" };
+      const labels = { today: "hoy", week: "los últimos 7 días", month: "el mes actual" };
       this.toast(`Reporte actualizado para ${labels[preset]}.`, "info");
     } catch (error) {
       this.toast(this.getErrorMessage(error), "error");
     } finally {
-      const labels = { today: "Hoy", week: "7 dias", month: "Mes" };
+      const labels = { today: "Hoy", week: "7 días", month: "Mes" };
       setButtonLoading(activeButton, false, labels[preset]);
     }
   },
@@ -119,7 +128,7 @@ export const reportesMethods = {
     }
 
     const rows = [
-      ["Fecha", "VentaId", "Usuario", "MedioPago", "Cliente", "Items", "Unidades", "Total"],
+      ["Fecha", "VentaId", "Usuario", "MedioPago", "Cliente", "Ítems", "Unidades", "Total"],
       ...this.state.reportes.ventas.map(venta => [
         formatDateTime(venta.Fecha),
         venta.VentaId,

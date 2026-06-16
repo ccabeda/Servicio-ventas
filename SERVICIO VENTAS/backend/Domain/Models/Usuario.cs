@@ -16,4 +16,5 @@ public class Usuario
     public ICollection<Caja> CajasAbiertas { get; set; } = new List<Caja>();
     public ICollection<Caja> CajasCerradas { get; set; } = new List<Caja>();
     public ICollection<MovimientoCaja> MovimientosCaja { get; set; } = new List<MovimientoCaja>();
+    public ICollection<MovimientoStock> MovimientosStock { get; set; } = new List<MovimientoStock>();
 }

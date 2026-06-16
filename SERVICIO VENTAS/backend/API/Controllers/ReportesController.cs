@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using ServicioVentas.API.Services;
 using ServicioVentas.Application.DTOs.Reportes;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.UseCases.Reportes.Queries;
@@ -13,7 +13,8 @@ namespace ServicioVentas.API.Controllers;
 public class ReportesController(
     IGetResumenVentasHandler getResumenVentasHandler,
     IGetVentasPorPeriodoHandler getVentasPorPeriodoHandler,
-    IGetProductosMasVendidosHandler getProductosMasVendidosHandler) : ControllerBase
+    IGetProductosMasVendidosHandler getProductosMasVendidosHandler,
+    ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet("resumen-ventas")]
     public async Task<ActionResult<ResumenVentasDto>> GetResumenVentas([FromQuery] DateTime? fechaDesde, [FromQuery] DateTime? fechaHasta)
@@ -22,7 +23,7 @@ public class ReportesController(
         {
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
-            UsuarioId = EsAdmin() ? null : GetCurrentUserId()
+            UsuarioId = currentUser.IsAdmin ? null : currentUser.UserId
         });
 
         return Ok(reporte);
@@ -41,7 +42,7 @@ public class ReportesController(
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
             CajaId = cajaId,
-            UsuarioId = EsAdmin() ? usuarioId : GetCurrentUserId(),
+            UsuarioId = currentUser.IsAdmin ? usuarioId : currentUser.UserId,
             MedioPagoId = medioPagoId
         });
 
@@ -58,23 +59,10 @@ public class ReportesController(
         {
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
-            UsuarioId = EsAdmin() ? null : GetCurrentUserId(),
+            UsuarioId = currentUser.IsAdmin ? null : currentUser.UserId,
             Top = top
         });
 
         return Ok(reporte);
     }
-
-    private int GetCurrentUserId()
-    {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("Usuario no autenticado.");
-
-        if (!int.TryParse(userIdValue, out var userId))
-            throw new UnauthorizedAccessException("Token invalido.");
-
-        return userId;
-    }
-
-    private bool EsAdmin() => User.IsInRole("Admin");
 }

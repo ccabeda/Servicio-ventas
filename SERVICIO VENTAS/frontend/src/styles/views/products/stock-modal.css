@@ -1,0 +1,121 @@
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.detail-grid div {
+    min-width: 0;
+    padding: 12px;
+}
+
+.detail-grid span,
+.detail-grid strong {
+    display: block;
+}
+
+.detail-grid span {
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.detail-grid strong {
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font-size: 0.98rem;
+}
+
+.stock-adjust-summary {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.modal-card.stock-modal {
+    width: min(920px, calc(100vw - 36px));
+    max-height: min(760px, calc(100vh - 36px));
+}
+
+.stock-modal .modal-body {
+    overflow: visible;
+}
+
+.stock-modal .modal-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.stock-modal .custom-select-menu {
+    max-height: 188px;
+}
+
+.stock-adjust-summary > div,
+.stock-history-row {
+    min-width: 0;
+    padding: 12px;
+}
+
+.stock-adjust-summary span,
+.stock-history-row span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.stock-adjust-summary strong,
+.stock-history-row strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.stock-history {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.stock-modal .stock-history {
+    max-height: 190px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.stock-modal .stock-history::-webkit-scrollbar {
+    width: 6px;
+}
+
+.stock-modal .stock-history::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+.stock-history-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+}
+
+.stock-history-row > div:last-child {
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .detail-grid,
+    .stock-adjust-summary,
+    .stock-history-row {
+        grid-template-columns: 1fr;
+    }
+
+    .stock-history-row > div:last-child {
+        text-align: left;
+    }
+}
+

@@ -1,0 +1,234 @@
+.workspace {
+    padding: 0 34px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-height: 0;
+    overflow: auto;
+}
+
+.app-shell.config-active.settings-negocio .workspace {
+    overflow: hidden;
+    scrollbar-width: none;
+}
+
+.app-shell.config-active.settings-negocio .workspace::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+body.theme-dark .workspace {
+    background: #0f131a;
+}
+
+.view-section {
+    flex: 0 0 auto;
+}
+
+.app-footer {
+    flex-shrink: 0;
+    width: 100%;
+    margin-top: auto;
+    padding: 0 24px 18px;
+    text-align: center;
+}
+
+.app-footer p {
+    margin: 4px 0 0;
+    color: rgba(51, 65, 85, 0.56);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+body.theme-dark .app-footer p {
+    color: rgba(203, 213, 225, 0.58);
+}
+
+.topbar {
+    height: 104px;
+    min-height: 104px;
+    margin: 0 -34px;
+    padding: 0 34px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+body.theme-dark .topbar {
+    background: #151922;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.topbar h2,
+.panel-header h3,
+.hero-panel h3,
+.modal-head h3 {
+    margin: 4px 0 0;
+    font-size: 1.7rem;
+}
+
+.topbar-left h2 {
+    margin: 0 0 5px;
+    font-size: 1.18rem;
+    line-height: 1.15;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-left span {
+    color: #0f172a;
+    font-size: 1.02rem;
+    display: block;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#topbarDateTime {
+    font-size: 1.16rem;
+    font-weight: 800;
+}
+
+body.theme-dark .topbar-left span {
+    color: #cbd5e1;
+}
+
+.topbar-right {
+    gap: 14px;
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+.topbar-pill {
+    max-width: 190px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid #d8dee9;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #111827;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.topbar-pill > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topbar .status-dot {
+    background: var(--brand);
+    box-shadow: none;
+}
+
+.topbar .status-dot.is-open {
+    background: #16a34a;
+}
+
+.topbar .status-dot.is-closed {
+    background: var(--brand);
+}
+
+.topbar .status-dot.is-offline {
+    background: #94a3b8;
+}
+
+.topbar .status-pill {
+    width: 146px;
+    min-width: 146px;
+    justify-content: center;
+}
+
+.topbar-select {
+    width: 132px;
+    justify-content: space-between;
+}
+
+.topbar-user {
+    width: 168px;
+    justify-content: space-between;
+}
+
+body.theme-dark .topbar-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f9fafb;
+}
+
+.topbar-user-icon {
+    color: var(--brand);
+    display: grid;
+    place-items: center;
+}
+
+.topbar-user-icon svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.user-menu {
+    position: relative;
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    min-width: 190px;
+    padding: 8px;
+    border: 1px solid #d8dee9;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+    z-index: 10;
+}
+
+.user-menu-dropdown button {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--brand);
+    text-align: left;
+    font-weight: 800;
+}
+
+.user-menu-dropdown button:first-child {
+    color: #111827;
+}
+
+.user-menu-dropdown button:hover {
+    background: rgba(var(--brand-rgb), 0.08);
+}
+
+body.theme-dark .user-menu-dropdown {
+    background: #1f2630;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .user-menu-dropdown button:first-child {
+    color: #f9fafb;
+}
+
+.sr-refresh,
+.sr-logout {
+    display: none;
+}
+

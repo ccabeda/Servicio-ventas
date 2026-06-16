@@ -9,4 +9,5 @@ public class ConfiguracionNegocioRepositoryQuery(ServicioVentasDbContext context
 {
     public async Task<List<ConfiguracionNegocio>> GetAllAsync() => await context.ConfiguracionesNegocio.AsNoTracking().OrderBy(x => x.Id).ToListAsync();
     public async Task<ConfiguracionNegocio?> GetByIdAsync(int id) => await context.ConfiguracionesNegocio.FirstOrDefaultAsync(x => x.Id == id);
+    public async Task<ConfiguracionNegocio?> GetPrincipalAsync() => await context.ConfiguracionesNegocio.AsNoTracking().OrderBy(x => x.Id).FirstOrDefaultAsync();
 }

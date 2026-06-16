@@ -1,0 +1,192 @@
+.products-categories {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px;
+    border: 1px solid #dfe4ec;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.06);
+}
+
+body.theme-dark .products-categories {
+    background: #151922;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+.products-categories button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #111827;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.products-categories button.active {
+    background: rgba(var(--brand-rgb), 0.08);
+    color: var(--brand);
+    box-shadow: inset 0 0 0 1px rgba(var(--brand-rgb), 0.36);
+}
+
+.products-categories .products-new-category {
+    margin-left: auto;
+    color: var(--brand);
+}
+
+body.theme-dark .products-categories button {
+    color: #f9fafb;
+}
+
+body.theme-dark .products-categories button.active,
+body.theme-dark .products-categories .products-new-category {
+    color: #ffb4b4;
+}
+
+.category-icon {
+    width: 22px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    color: currentColor;
+}
+
+.category-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.products-new-category svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.category-blue {
+    color: #2563eb;
+}
+
+.category-amber {
+    color: #d97706;
+}
+
+.category-green {
+    color: #16a34a;
+}
+
+.category-orange {
+    color: #ea580c;
+}
+
+.category-purple {
+    color: #9333ea;
+}
+
+.category-muted {
+    color: #64748b;
+}
+
+.products-table-card {
+    overflow: hidden;
+    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+}
+
+body.theme-dark .products-table-card {
+    box-shadow: none;
+}
+
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border-top: 1px solid #dfe4ec;
+    background: #f8fafc;
+}
+
+.table-pagination-top {
+    border-top: 0;
+    border-bottom: 1px solid #dfe4ec;
+}
+
+body.theme-dark .table-pagination {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.pagination-summary,
+.pagination-page {
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+.pagination-controls,
+.pagination-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-size span {
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.pagination-size select {
+    height: 38px;
+    min-width: 82px;
+    appearance: none;
+    border: 1px solid #d8dee8;
+    border-radius: 10px;
+    background:
+        linear-gradient(45deg, transparent 50%, #64748b 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, #64748b 50%, transparent 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
+        #f8fafc;
+    color: #09253f;
+    font-weight: 850;
+    padding: 0 38px 0 12px;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.pagination-size select:hover,
+.pagination-size select:focus {
+    outline: none;
+    border-color: rgba(var(--brand-rgb), 0.46);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.1);
+}
+
+body.theme-dark .pagination-size select {
+    border-color: rgba(255, 255, 255, 0.14);
+    background:
+        linear-gradient(45deg, transparent 50%, #cbd5e1 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, #cbd5e1 50%, transparent 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
+        #10131a;
+    color: #f9fafb;
+}
+
+body.theme-dark .pagination-size select:hover,
+body.theme-dark .pagination-size select:focus {
+    border-color: rgba(var(--brand-rgb), 0.48);
+    background-color: #151922;
+}
+

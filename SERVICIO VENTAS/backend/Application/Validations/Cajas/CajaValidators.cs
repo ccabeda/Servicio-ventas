@@ -19,6 +19,10 @@ public class CerrarCajaDtoValidator : AbstractValidator<CerrarCajaDto>
     {
         RuleFor(x => x.MontoFinal)
             .GreaterThanOrEqualTo(0);
+
+        RuleFor(x => x.MotivoCierre)
+            .MaximumLength(300)
+            .When(x => !string.IsNullOrWhiteSpace(x.MotivoCierre));
     }
 }
 

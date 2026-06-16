@@ -19,6 +19,6 @@ public class GetProductosMasVendidosHandler(IReporteRepositoryQuery reporteRepos
             throw new InvalidOperationException("La fecha desde no puede ser mayor que la fecha hasta.");
 
         if (query.Top <= 0)
-            throw new InvalidOperationException("El parametro top debe ser mayor que cero.");
+            throw new InvalidOperationException("El parámetro top debe ser mayor que cero.");
     }
 }

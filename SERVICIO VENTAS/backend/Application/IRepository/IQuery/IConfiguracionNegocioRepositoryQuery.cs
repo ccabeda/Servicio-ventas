@@ -6,4 +6,5 @@ public interface IConfiguracionNegocioRepositoryQuery
 {
     Task<List<ConfiguracionNegocio>> GetAllAsync();
     Task<ConfiguracionNegocio?> GetByIdAsync(int id);
+    Task<ConfiguracionNegocio?> GetPrincipalAsync();
 }

@@ -22,6 +22,65 @@ namespace ServicioVentas.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ServicioVentas.Domain.Models.AuditoriaEvento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Entidad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EntidadId")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Modulo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ValoresAnterioresJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValoresNuevosJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("Modulo", "Accion");
+
+                    b.ToTable("AUDITORIA_EVENTO", (string)null);
+                });
+
             modelBuilder.Entity("ServicioVentas.Domain.Models.Caja", b =>
                 {
                     b.Property<int>("Id")
@@ -48,6 +107,10 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Property<decimal>("MontoInicial")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("MotivoCierre")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<int>("UsuarioAperturaId")
                         .HasColumnType("int");
 
@@ -65,6 +128,98 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.HasIndex("UsuarioCierreId");
 
                     b.ToTable("CAJA", (string)null);
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.CategoriaProducto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Icono")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("CATEGORIA_PRODUCTO", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Color = "#2563eb",
+                            Icono = "bottle",
+                            Nombre = "Bebidas"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Color = "#d97706",
+                            Icono = "basket",
+                            Nombre = "Almacen"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            Color = "#2563eb",
+                            Icono = "milk",
+                            Nombre = "Lacteos"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            Color = "#16a34a",
+                            Icono = "cleaner",
+                            Nombre = "Limpieza"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Activo = true,
+                            Color = "#ea580c",
+                            Icono = "bread",
+                            Nombre = "Panaderia"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Activo = true,
+                            Color = "#9333ea",
+                            Icono = "candy",
+                            Nombre = "Golosinas"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Activo = true,
+                            Color = "#64748b",
+                            Icono = "more",
+                            Nombre = "Otros"
+                        });
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.Cliente", b =>
@@ -103,37 +258,300 @@ namespace ServicioVentas.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ColorPrincipal")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)")
+                        .HasDefaultValue("#ef0000");
+
+                    b.Property<bool>("ConfirmarEliminarItemCarrito")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal>("DescuentoMaximoPermitido")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(20m);
+
+                    b.Property<string>("DiasAtencion")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
                     b.Property<string>("Direccion")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("ImpresoraTicket")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                    b.Property<string>("Email")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("EnviarEstadisticasAnonimas")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("FormatoFecha")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("dd/MM/yyyy");
+
+                    b.Property<string>("FormatoHora")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)")
+                        .HasDefaultValue("24");
+
+                    b.Property<string>("HorarioApertura")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("HorarioCierre")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("ImprimirResumenCerrarCaja")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("LogoUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("MensajeTicket")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<bool>("MantenerClienteAlFinalizarVenta")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal>("MontoMinimoAperturaCaja")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<bool>("MostrarMensajesAyuda")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("MostrarStockEnBusquedaProductos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("NombreNegocio")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("PedirCantidadAlAgregarProducto")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("PedirMotivoCerrarCaja")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("RedondeoTotal")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("0.05");
+
                     b.Property<string>("Telefono")
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<bool>("UsaTicketTermico")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.ToTable("CONFIGURACION_NEGOCIO", (string)null);
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.ConfiguracionTicket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnchoPapelMm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(80);
+
+                    b.Property<bool>("CorteAutomatico")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int?>("ImpresoraId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImpresoraNombreSistema")
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<bool>("ImprimirCajeroTicket")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ImprimirCopiaTicket")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("ImprimirDatosNegocioTicket")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ImprimirFechaHoraTicket")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ImprimirNumeroTicket")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("LetraGrandePantallaTactil")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("MensajeTicket")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("UsaAnchoPersonalizado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("UsaTicketTermico")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("VistaPreviaAntesImprimir")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImpresoraId");
+
+                    b.ToTable("CONFIGURACION_TICKET", (string)null);
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.Impresora", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activa")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("AnchoPapelMm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(80);
+
+                    b.Property<string>("Conexion")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<bool>("CorteAutomatico")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("DensidadImpresion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Media");
+
+                    b.Property<bool>("EsPredeterminada")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Modelo")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("NombreSistema")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("Puerto")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Ticket");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre");
+
+                    b.HasIndex("NombreSistema");
+
+                    b.ToTable("IMPRESORA", (string)null);
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.MarcaProducto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activa")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("MARCA_PRODUCTO", (string)null);
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.MedioPago", b =>
@@ -197,6 +615,55 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.ToTable("MOVIMIENTO_CAJA", (string)null);
                 });
 
+            modelBuilder.Entity("ServicioVentas.Domain.Models.MovimientoStock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Cantidad")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Observacion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("StockAnterior")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("StockNuevo")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("ProductoId", "Fecha");
+
+                    b.ToTable("MOVIMIENTO_STOCK", (string)null);
+                });
+
             modelBuilder.Entity("ServicioVentas.Domain.Models.Producto", b =>
                 {
                     b.Property<int>("Id")
@@ -207,6 +674,9 @@ namespace ServicioVentas.Infrastructure.Migrations
 
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
+
+                    b.Property<int?>("CategoriaId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CodigoBarra")
                         .HasMaxLength(50)
@@ -225,6 +695,9 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("MarcaId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -238,6 +711,8 @@ namespace ServicioVentas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoriaId");
+
                     b.HasIndex("CodigoBarra")
                         .IsUnique()
                         .HasFilter("[CodigoBarra] IS NOT NULL");
@@ -245,6 +720,8 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.HasIndex("CodigoInterno")
                         .IsUnique()
                         .HasFilter("[CodigoInterno] IS NOT NULL");
+
+                    b.HasIndex("MarcaId");
 
                     b.ToTable("PRODUCTO", (string)null);
                 });
@@ -374,6 +851,16 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.ToTable("VENTA_DETALLE", (string)null);
                 });
 
+            modelBuilder.Entity("ServicioVentas.Domain.Models.AuditoriaEvento", b =>
+                {
+                    b.HasOne("ServicioVentas.Domain.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("ServicioVentas.Domain.Models.Caja", b =>
                 {
                     b.HasOne("ServicioVentas.Domain.Models.Usuario", "UsuarioApertura")
@@ -390,6 +877,16 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Navigation("UsuarioApertura");
 
                     b.Navigation("UsuarioCierre");
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.ConfiguracionTicket", b =>
+                {
+                    b.HasOne("ServicioVentas.Domain.Models.Impresora", "Impresora")
+                        .WithMany()
+                        .HasForeignKey("ImpresoraId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Impresora");
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.MovimientoCaja", b =>
@@ -409,6 +906,42 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Navigation("Caja");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.MovimientoStock", b =>
+                {
+                    b.HasOne("ServicioVentas.Domain.Models.Producto", "Producto")
+                        .WithMany("MovimientosStock")
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServicioVentas.Domain.Models.Usuario", "Usuario")
+                        .WithMany("MovimientosStock")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.Producto", b =>
+                {
+                    b.HasOne("ServicioVentas.Domain.Models.CategoriaProducto", "Categoria")
+                        .WithMany("Productos")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ServicioVentas.Domain.Models.MarcaProducto", "Marca")
+                        .WithMany("Productos")
+                        .HasForeignKey("MarcaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Categoria");
+
+                    b.Navigation("Marca");
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.Venta", b =>
@@ -471,9 +1004,19 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Navigation("Ventas");
                 });
 
+            modelBuilder.Entity("ServicioVentas.Domain.Models.CategoriaProducto", b =>
+                {
+                    b.Navigation("Productos");
+                });
+
             modelBuilder.Entity("ServicioVentas.Domain.Models.Cliente", b =>
                 {
                     b.Navigation("Ventas");
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.MarcaProducto", b =>
+                {
+                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.MedioPago", b =>
@@ -483,6 +1026,8 @@ namespace ServicioVentas.Infrastructure.Migrations
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.Producto", b =>
                 {
+                    b.Navigation("MovimientosStock");
+
                     b.Navigation("VentaDetalles");
                 });
 
@@ -493,6 +1038,8 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Navigation("CajasCerradas");
 
                     b.Navigation("MovimientosCaja");
+
+                    b.Navigation("MovimientosStock");
 
                     b.Navigation("Ventas");
                 });

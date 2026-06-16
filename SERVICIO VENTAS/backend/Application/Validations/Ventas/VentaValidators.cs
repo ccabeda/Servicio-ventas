@@ -11,8 +11,11 @@ public class CreateVentaDetalleDtoValidator : AbstractValidator<CreateVentaDetal
             .GreaterThan(0);
 
         RuleFor(x => x.Cantidad)
-            .GreaterThan(0).WithMessage("Las cantidades deben ser mayores a cero.");
+            .GreaterThan(0).WithMessage("Las cantidades deben ser mayores a cero.")
+            .Must(BeWholeNumber).WithMessage("Las cantidades deben ser números enteros.");
     }
+
+    private static bool BeWholeNumber(decimal value) => decimal.Truncate(value) == value;
 }
 
 public class CreateVentaDtoValidator : AbstractValidator<CreateVentaDto>
@@ -27,6 +30,9 @@ public class CreateVentaDtoValidator : AbstractValidator<CreateVentaDto>
 
         RuleFor(x => x.Descuento)
             .GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Descuento)
+            .LessThanOrEqualTo(100)
+            .WithMessage("El descuento debe ser un porcentaje entre 0 y 100.");
 
         RuleFor(x => x.Recargo)
             .GreaterThanOrEqualTo(0);

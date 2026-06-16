@@ -8,6 +8,7 @@ public class Caja
     public DateTime? FechaCierre { get; set; }
     public decimal? MontoFinal { get; set; }
     public decimal? Diferencia { get; set; }
+    public string? MotivoCierre { get; set; }
     public bool Abierta { get; set; } = true;
     public int UsuarioAperturaId { get; set; }
     public int? UsuarioCierreId { get; set; }

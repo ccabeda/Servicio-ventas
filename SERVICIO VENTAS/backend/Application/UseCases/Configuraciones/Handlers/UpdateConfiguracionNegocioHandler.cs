@@ -11,7 +11,7 @@ public class UpdateConfiguracionNegocioHandler(IMapper mapper, IConfiguracionNeg
 {
     public async Task<ConfiguracionNegocioDto> Handle(UpdateConfiguracionNegocioCommand command)
     {
-        var configuracion = await queryRepo.GetByIdAsync(command.Id) ?? throw new KeyNotFoundException("Configuracion no encontrada.");
+        var configuracion = await queryRepo.GetByIdAsync(command.Id) ?? throw new KeyNotFoundException("Configuración no encontrada.");
         mapper.Map(command.Configuracion, configuracion);
 
         await commandRepo.UpdateAsync(configuracion);

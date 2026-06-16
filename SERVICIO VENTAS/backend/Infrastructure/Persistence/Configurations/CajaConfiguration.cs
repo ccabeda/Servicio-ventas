@@ -13,6 +13,7 @@ public class CajaConfiguration : IEntityTypeConfiguration<Caja>
         entity.Property(x => x.MontoInicial).HasColumnType("decimal(18,2)");
         entity.Property(x => x.MontoFinal).HasColumnType("decimal(18,2)");
         entity.Property(x => x.Diferencia).HasColumnType("decimal(18,2)");
+        entity.Property(x => x.MotivoCierre).HasMaxLength(300);
         entity.HasIndex(x => x.Abierta)
             .IsUnique()
             .HasFilter("[Abierta] = 1");

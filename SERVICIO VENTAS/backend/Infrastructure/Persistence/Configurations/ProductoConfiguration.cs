@@ -16,6 +16,14 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
         entity.Property(x => x.Precio).HasColumnType("decimal(18,2)");
         entity.Property(x => x.Costo).HasColumnType("decimal(18,2)");
         entity.Property(x => x.Stock).HasColumnType("decimal(18,2)");
+        entity.HasOne(x => x.Categoria)
+            .WithMany(x => x.Productos)
+            .HasForeignKey(x => x.CategoriaId)
+            .OnDelete(DeleteBehavior.SetNull);
+        entity.HasOne(x => x.Marca)
+            .WithMany(x => x.Productos)
+            .HasForeignKey(x => x.MarcaId)
+            .OnDelete(DeleteBehavior.SetNull);
         entity.HasIndex(x => x.CodigoBarra).IsUnique().HasFilter("[CodigoBarra] IS NOT NULL");
         entity.HasIndex(x => x.CodigoInterno).IsUnique().HasFilter("[CodigoInterno] IS NOT NULL");
     }

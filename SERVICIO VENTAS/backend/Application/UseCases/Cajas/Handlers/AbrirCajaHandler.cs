@@ -1,8 +1,12 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.IRepository.ICommand;
 using ServicioVentas.Application.IRepository.IQuery;
+using ServicioVentas.Application.Services;
 using ServicioVentas.Application.UseCases.Cajas.Commands;
 using ServicioVentas.Domain.Enums;
 using ServicioVentas.Domain.Models;
@@ -13,6 +17,10 @@ public class AbrirCajaHandler(
     IMapper mapper,
     ICajaRepositoryCommand cajaRepositoryCommand,
     ICajaRepositoryQuery cajaRepositoryQuery,
+    IConfiguracionNegocioRepositoryQuery configuracionQueryRepo,
+    IClock clock,
+    IAuditoriaService auditoriaService,
+    ILogger<AbrirCajaHandler> logger,
     ServicioVentas.Application.IUnitOfWork.IUnitOfWork unitOfWork) : IAbrirCajaHandler
 {
     public async Task<CajaDto> Handle(AbrirCajaCommand command)
@@ -25,12 +33,19 @@ public class AbrirCajaHandler(
             throw new InvalidOperationException("Ya existe una caja abierta.");
         }
 
+        var configuracion = await configuracionQueryRepo.GetPrincipalAsync();
+        var montoMinimo = configuracion?.MontoMinimoAperturaCaja ?? 0m;
+        if (request.MontoInicial < montoMinimo)
+        {
+            throw new InvalidOperationException($"El monto inicial debe ser al menos {montoMinimo:0.##}.");
+        }
+
         var caja = new Caja
         {
-            FechaApertura = DateTime.UtcNow,
+            FechaApertura = clock.UtcNow,
             MontoInicial = request.MontoInicial,
             Abierta = true,
-            UsuarioAperturaId = request.UsuarioAperturaId
+            UsuarioAperturaId = command.UsuarioId
         };
 
         await cajaRepositoryCommand.AddCajaAsync(caja);
@@ -38,15 +53,25 @@ public class AbrirCajaHandler(
         var movimiento = new MovimientoCaja
         {
             Caja = caja,
-            Fecha = DateTime.UtcNow,
+            Fecha = clock.UtcNow,
             Tipo = TipoMovimientoCaja.Apertura,
             Concepto = "Apertura de caja",
             Monto = request.MontoInicial,
-            UsuarioId = request.UsuarioAperturaId
+            UsuarioId = command.UsuarioId
         };
 
         await cajaRepositoryCommand.AddMovimientoAsync(movimiento);
+        await auditoriaService.RegistrarAsync(new RegistrarAuditoriaEventoDto
+        {
+            UsuarioId = command.UsuarioId,
+            Modulo = "Caja",
+            Accion = "Apertura",
+            Entidad = "Caja",
+            Detalle = $"Caja abierta con monto inicial {request.MontoInicial:0.##}.",
+            ValoresNuevosJson = JsonSerializer.Serialize(new { montoInicial = request.MontoInicial })
+        });
         await unitOfWork.SaveChangesAsync();
+        logger.LogInformation("Caja abierta por usuario {UsuarioId} con monto inicial {MontoInicial}.", command.UsuarioId, request.MontoInicial);
 
         return mapper.Map<CajaDto>(caja);
     }

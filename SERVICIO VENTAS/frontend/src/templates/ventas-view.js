@@ -15,11 +15,11 @@ export function buildVentasView() {
 
           <div class="toolbar-stack">
             <label class="field grow">
-              <span>Buscar por nombre, codigo interno o codigo de barras</span>
+              <span>Buscar por nombre, código interno o código de barras</span>
               <input id="ventaSearchInput" type="search" placeholder="Escanear o escribir producto">
             </label>
 
-            <div id="ventaSearchHint" class="helper-inline">Escribe o escanea un codigo y presiona Enter para agregar rapido si hay una coincidencia exacta.</div>
+            <div id="ventaSearchHint" class="helper-inline">Escribe o escanea un código y presiona Enter para agregar rápido si hay una coincidencia exacta.</div>
 
             <div class="quick-meta">
               <label class="field">
@@ -49,8 +49,8 @@ export function buildVentasView() {
 
           <div class="cart-meta">
             <label class="field">
-              <span>Descuento</span>
-              <input id="ventaDescuentoInput" type="number" min="0" step="0.01" value="0">
+              <span>Descuento (%)</span>
+              <input id="ventaDescuentoInput" type="number" min="0" max="100" step="0.01" value="0">
             </label>
             <label class="field">
               <span>Recargo</span>
@@ -83,7 +83,7 @@ export function buildVentasView() {
         <div class="panel-header">
           <div>
             <span class="eyebrow">Seguimiento</span>
-            <h3>Ultimas ventas</h3>
+            <h3>Últimas ventas</h3>
           </div>
         </div>
         <div class="table-wrap">
@@ -92,7 +92,7 @@ export function buildVentasView() {
               <tr>
                 <th>Fecha</th>
                 <th>ID</th>
-                <th>Items</th>
+                <th>Ítems</th>
                 <th>Total</th>
               </tr>
             </thead>

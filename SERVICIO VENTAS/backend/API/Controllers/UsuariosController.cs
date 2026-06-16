@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServicioVentas.Application.DTOs.Usuarios;
 using ServicioVentas.Application.IHandlers;
+using ServicioVentas.Application.Security;
 using ServicioVentas.Application.UseCases.Usuarios.Commands;
 using ServicioVentas.Application.UseCases.Usuarios.Queries;
 
@@ -9,7 +10,7 @@ namespace ServicioVentas.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = PermisosSistema.UsuariosGestionar)]
 public class UsuariosController(
     ICreateUsuarioHandler createHandler,
     IUpdateUsuarioHandler updateHandler,
@@ -19,6 +20,22 @@ public class UsuariosController(
 {
     [HttpGet]
     public async Task<ActionResult<List<UsuarioDto>>> GetAll() => Ok(await getAllHandler.Handle(new GetUsuariosQuery()));
+
+    [HttpGet("paginado")]
+    public async Task<IActionResult> GetPaged(
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null,
+        [FromQuery] string estado = "activos")
+    {
+        return Ok(await getAllHandler.HandlePaged(new GetUsuariosQuery
+        {
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            Search = search,
+            Estado = estado
+        }));
+    }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<UsuarioDto>> GetById(int id)

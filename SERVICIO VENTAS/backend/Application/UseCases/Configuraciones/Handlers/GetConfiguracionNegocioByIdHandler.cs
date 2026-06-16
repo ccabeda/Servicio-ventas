@@ -8,5 +8,5 @@ namespace ServicioVentas.Application.UseCases.Configuraciones.Handlers;
 
 public class GetConfiguracionNegocioByIdHandler(IMapper mapper, IConfiguracionNegocioRepositoryQuery queryRepo) : IGetConfiguracionNegocioByIdHandler
 {
-    public async Task<ConfiguracionNegocioDto> Handle(GetConfiguracionNegocioByIdQuery query) => mapper.Map<ConfiguracionNegocioDto>(await queryRepo.GetByIdAsync(query.Id) ?? throw new KeyNotFoundException("Configuracion no encontrada."));
+    public async Task<ConfiguracionNegocioDto> Handle(GetConfiguracionNegocioByIdQuery query) => mapper.Map<ConfiguracionNegocioDto>(await queryRepo.GetByIdAsync(query.Id) ?? throw new KeyNotFoundException("Configuración no encontrada."));
 }

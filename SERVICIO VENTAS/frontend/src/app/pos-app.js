@@ -1,4 +1,4 @@
-import { STORAGE_KEYS, VIEW_TITLES, MOVIMIENTO_TIPOS } from "../config.js";
+import { API_ENDPOINTS, STORAGE_KEYS, VIEW_TITLES, MOVIMIENTO_TIPOS } from "../config.js";
 import { getElements } from "../dom/elements.js";
 import { ApiClient } from "../services/api-client.js";
 import { renderAppShell } from "../templates/app-shell.js";
@@ -26,16 +26,71 @@ export class PosApp {
       session: loadJson(STORAGE_KEYS.session, null),
       currentView: loadString(STORAGE_KEYS.currentView, "dashboard"),
       theme: loadString(STORAGE_KEYS.theme, "light"),
+      rememberedUser: loadString(STORAGE_KEYS.rememberedUser, ""),
       productos: [],
+      productosPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 20,
+        TotalItems: 0,
+        TotalPages: 0
+      },
+      categoriasProducto: [],
+      marcasProducto: [],
       clientes: [],
+      clientesPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 20,
+        TotalItems: 0,
+        TotalPages: 0
+      },
       usuarios: [],
+      usuariosPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 20,
+        TotalItems: 0,
+        TotalPages: 0
+      },
       mediosPago: [],
+      mediosPagoPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 20,
+        TotalItems: 0,
+        TotalPages: 0
+      },
       ventas: [],
+      ventasPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 8,
+        TotalItems: 0,
+        TotalPages: 0
+      },
       movimientosCaja: [],
+      movimientosCajaPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 10,
+        TotalItems: 0,
+        TotalPages: 0
+      },
       historialCajas: [],
+      historialCajasPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 10,
+        TotalItems: 0,
+        TotalPages: 0
+      },
       cajaActual: null,
       lastClosedCaja: null,
       configuraciones: [],
+      configuracionTicket: null,
+      impresoras: [],
+      impresorasError: "",
       reportes: {
         resumen: null,
         ventas: [],
@@ -50,17 +105,22 @@ export class PosApp {
       onUnauthorized: () => this.logout(false)
     });
     this.pendingConfirmResolve = null;
+    this.pendingQuantityResolve = null;
+    this.clockTimer = null;
   }
 
   async init() {
     this.applyTheme();
+    this.restoreRememberedUser();
     this.bindEvents();
     this.populateStaticSelectors();
     this.syncAuthView();
+    this.initCustomSelects();
 
     if (this.state.token) {
       await this.initializeApp();
     } else {
+      this.stopClock();
       this.setAppLoading(false);
       this.els.loginUser.focus();
     }
@@ -68,14 +128,57 @@ export class PosApp {
 
   bindEvents() {
     this.els.loginForm.addEventListener("submit", event => this.handleLogin(event));
+    this.els.passwordToggleButton.addEventListener("click", () => this.togglePasswordVisibility());
     this.els.themeToggleButtons.forEach(button => {
       button.addEventListener("click", () => this.toggleTheme());
     });
-    this.els.logoutButton.addEventListener("click", () => this.logout());
-    this.els.refreshButton.addEventListener("click", () => this.refreshCurrentView());
+    this.els.logoutButton.addEventListener("click", () => {
+      this.closeUserMenu();
+      this.logout();
+    });
+    this.els.sidebarLogoutButton.addEventListener("click", () => this.logout());
+    this.els.userMenuButton.addEventListener("click", event => {
+      event.stopPropagation();
+      this.toggleUserMenu();
+    });
+    document.addEventListener("click", () => this.closeUserMenu());
+    document.addEventListener("keydown", event => {
+      if (event.key === "F1") {
+        event.preventDefault();
+        this.setCurrentView("ventas");
+      }
+    });
+    this.els.refreshButton.addEventListener("click", () => {
+      this.closeUserMenu();
+      this.refreshCurrentView();
+    });
     this.els.clearCartButton.addEventListener("click", () => this.clearCart());
     this.els.confirmSaleButton.addEventListener("click", () => this.submitVenta());
-    this.els.productosFilterInput.addEventListener("input", () => this.renderProductosTable());
+    this.els.productosFilterInput.addEventListener("input", () => this.resetProductosPageAndRender());
+    this.bindProductFilterCombobox(
+      this.els.productosCategoriaSearch,
+      this.els.productosCategoriaOptions,
+      this.els.productosCategoriaFilter,
+      () => this.getOrderedCategoriasProducto(),
+      "Todas las categorías");
+    this.els.productosCategoriaFilter.addEventListener("change", () => {
+      this.syncProductsCategoryBar();
+      this.resetProductosPageAndRender();
+    });
+    this.bindProductFilterCombobox(
+      this.els.productosMarcaSearch,
+      this.els.productosMarcaOptions,
+      this.els.productosMarcaFilter,
+      () => this.state.marcasProducto,
+      "Todas las marcas");
+    this.els.productosMarcaFilter.addEventListener("change", () => this.resetProductosPageAndRender());
+    this.els.productosEstadoFilter.addEventListener("change", () => this.resetProductosPageAndRender());
+    this.els.clientesFilterInput.addEventListener("input", () => this.resetClientesPageAndRender());
+    this.els.clientesEstadoFilter.addEventListener("change", () => this.resetClientesPageAndRender());
+    this.els.usuariosFilterInput.addEventListener("input", () => this.resetUsuariosPageAndRender());
+    this.els.usuariosEstadoFilter.addEventListener("change", () => this.resetUsuariosPageAndRender());
+    this.els.mediosPagoFilterInput.addEventListener("input", () => this.resetMediosPagoPageAndRender());
+    this.els.mediosPagoEstadoFilter.addEventListener("change", () => this.resetMediosPagoPageAndRender());
     this.els.ventaSearchInput.addEventListener("input", () => this.renderProductosVenta());
     this.els.ventaSearchInput.addEventListener("keydown", event => this.handleVentaSearchKeydown(event));
     this.els.ventaDescuentoInput.addEventListener("input", () => this.renderCart());
@@ -89,7 +192,10 @@ export class PosApp {
     this.els.confirmActionButton.addEventListener("click", () => this.resolveConfirmation(true));
     this.els.ticketCloseButton.addEventListener("click", () => this.closeTicketModal());
     this.els.ticketDoneButton.addEventListener("click", () => this.closeTicketModal());
-    this.els.printTicketButton.addEventListener("click", () => window.print());
+    this.els.printTicketButton.addEventListener("click", () => this.printTicket());
+    this.els.importProductosButton.addEventListener("click", () => this.openImportProductosFilePicker());
+    this.els.importProductosInput.addEventListener("change", event => this.handleImportProductosFile(event));
+    this.els.manageMarcasButton.addEventListener("click", () => this.openMarcasManagerModal());
     this.els.newProductoButton.addEventListener("click", () => this.openEntityModal("producto"));
     this.els.newClienteButton.addEventListener("click", () => this.openEntityModal("cliente"));
     this.els.newUsuarioButton.addEventListener("click", () => this.openEntityModal("usuario"));
@@ -130,11 +236,14 @@ export class PosApp {
 
   syncAuthView() {
     const authenticated = Boolean(this.state.token);
+    document.body.classList.toggle("auth-active", !authenticated);
     this.els.authView.classList.toggle("hidden", authenticated);
     this.els.appView.classList.toggle("hidden", !authenticated);
+    this.setRoutePath(authenticated ? this.state.currentView : "login");
 
     this.els.sessionUserName.textContent = this.state.session?.NombreUsuario || "-";
     this.els.sessionUserRole.textContent = this.state.session?.Rol || "-";
+    this.updateTopbarMeta?.();
   }
 
   async initializeApp() {
@@ -145,6 +254,7 @@ export class PosApp {
       this.applyRoleVisibility();
       this.syncAuthView();
       await this.loadBootstrapData();
+      this.startClock();
       this.setCurrentView(this.state.currentView, { silentRedirect: true });
       this.setConnection(true);
     } catch (error) {
@@ -156,16 +266,18 @@ export class PosApp {
   }
 
   async ensureSession() {
-    if (this.state.session?.UsuarioId) return;
-    this.state.session = await this.api.request("/api/auth/me");
+    if (this.state.session?.UsuarioId && Array.isArray(this.state.session.Permisos)) return;
+    this.state.session = await this.api.request(API_ENDPOINTS.authMe);
     saveJson(STORAGE_KEYS.session, this.state.session);
   }
 
   async loadBootstrapData() {
     const tasks = [
       { label: "productos", run: () => this.loadProductos() },
-      { label: "clientes", run: () => this.loadClientes() },
-      { label: "medios de pago", run: () => this.loadMediosPago() },
+      { label: "categorias", run: () => this.loadCategoriasProducto() },
+      { label: "marcas", run: () => this.loadMarcasProducto() },
+      { label: "clientes", run: () => Promise.all([this.loadClientes(), this.loadClientesPage()]) },
+      { label: "medios de pago", run: () => Promise.all([this.loadMediosPago(), this.loadMediosPagoPage()]) },
       { label: "ventas", run: () => this.loadVentas() },
       { label: "caja", run: () => this.loadCaja() },
       { label: "historial de cajas", run: () => this.loadHistorialCajas() },
@@ -174,8 +286,8 @@ export class PosApp {
       { label: "reportes", run: () => this.loadReportes() }
     ];
 
-    if (this.isAdmin()) {
-      tasks.push({ label: "usuarios", run: () => this.loadUsuarios() });
+    if (this.canManageEntity("usuario")) {
+      tasks.push({ label: "usuarios", run: () => Promise.all([this.loadUsuarios(), this.loadUsuariosPage()]) });
     } else {
       this.state.usuarios = [];
     }
@@ -185,7 +297,7 @@ export class PosApp {
 
     if (firstFailure) {
       const index = results.indexOf(firstFailure);
-      throw new Error(`Fallo la carga de ${tasks[index].label}: ${this.getErrorMessage(firstFailure.reason)}`);
+      throw new Error(`Falló la carga de ${tasks[index].label}: ${this.getErrorMessage(firstFailure.reason)}`);
     }
   }
 
@@ -200,7 +312,7 @@ export class PosApp {
           this.renderVentasView();
           break;
         case "productos":
-          await this.loadProductos();
+          await Promise.all([this.loadProductos(), this.loadCategoriasProducto(), this.loadMarcasProducto()]);
           this.renderProductosTable();
           break;
         case "caja":
@@ -208,16 +320,16 @@ export class PosApp {
           this.renderCajaView();
           break;
         case "clientes":
-          await this.loadClientes();
-          this.renderClientesTable();
+          await Promise.all([this.loadClientes(), this.loadClientesPage()]);
+          await this.renderClientesTable();
           break;
         case "usuarios":
-          await this.loadUsuarios();
-          this.renderUsuariosTable();
+          await Promise.all([this.loadUsuarios(), this.loadUsuariosPage()]);
+          await this.renderUsuariosTable();
           break;
         case "mediosPago":
-          await this.loadMediosPago();
-          this.renderMediosPagoTable();
+          await Promise.all([this.loadMediosPago(), this.loadMediosPagoPage()]);
+          await this.renderMediosPagoTable();
           break;
         case "configuracion":
           await this.loadConfiguracion();
@@ -228,7 +340,7 @@ export class PosApp {
           this.renderReportesView();
           break;
         default:
-          await Promise.all([this.loadCaja(), this.loadConfiguracion(), this.loadDashboard(), this.loadVentas(), this.loadProductos()]);
+          await Promise.all([this.loadCaja(), this.loadConfiguracion(), this.loadDashboard(), this.loadVentas(), this.loadProductos(), this.loadCategoriasProducto(), this.loadMarcasProducto()]);
           this.renderDashboard();
           break;
       }
@@ -251,13 +363,15 @@ export class PosApp {
 
     this.state.currentView = allowedView;
     saveString(STORAGE_KEYS.currentView, allowedView);
+    this.setRoutePath(allowedView);
 
     this.els.navLinks.forEach(link => link.classList.toggle("active", link.dataset.view === allowedView));
+    this.els.appShell.classList.toggle("config-active", allowedView === "configuracion");
     this.els.viewSections.forEach(section => section.classList.toggle("hidden", section.id !== `${allowedView}View`));
 
     const currentMeta = VIEW_TITLES[allowedView] || VIEW_TITLES.dashboard;
-    this.els.viewTitle.textContent = currentMeta.title;
-    this.els.viewEyebrow.textContent = currentMeta.eyebrow;
+    if (this.els.viewTitle) this.els.viewTitle.textContent = currentMeta.title;
+    if (this.els.viewEyebrow) this.els.viewEyebrow.textContent = currentMeta.eyebrow;
 
     const renderMap = {
       dashboard: () => this.renderDashboard(),

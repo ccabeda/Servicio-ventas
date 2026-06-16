@@ -3,6 +3,7 @@ using ServicioVentas.Application.DTOs.Productos;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.IRepository.ICommand;
 using ServicioVentas.Application.IRepository.IQuery;
+using ServicioVentas.Application.Services;
 using ServicioVentas.Application.UseCases.Productos.Commands;
 
 namespace ServicioVentas.Application.UseCases.Productos.Handlers;
@@ -10,7 +11,10 @@ namespace ServicioVentas.Application.UseCases.Productos.Handlers;
 public class UpdateProductoHandler(
     IMapper mapper,
     IProductoRepositoryCommand productoRepositoryCommand,
-    IProductoRepositoryQuery productoRepositoryQuery) : IUpdateProductoHandler
+    IProductoRepositoryQuery productoRepositoryQuery,
+    ICategoriaProductoRepositoryQuery categoriaProductoRepositoryQuery,
+    IMarcaProductoRepositoryQuery marcaProductoRepositoryQuery,
+    IClock clock) : IUpdateProductoHandler
 {
     public async Task<ProductoDto> Handle(UpdateProductoCommand command)
     {
@@ -20,9 +24,10 @@ public class UpdateProductoHandler(
         var request = command.Producto;
 
         await ValidateCodesAsync(request.CodigoBarra, request.CodigoInterno, producto.Id);
+        await ValidateCategoriaMarcaAsync(request.CategoriaId, request.MarcaId);
 
         mapper.Map(request, producto);
-        producto.FechaActualizacion = DateTime.UtcNow;
+        producto.FechaActualizacion = clock.UtcNow;
 
         await productoRepositoryCommand.UpdateAsync(producto);
         await productoRepositoryCommand.SaveChangesAsync();
@@ -38,18 +43,31 @@ public class UpdateProductoHandler(
         if (normalizedCodigoBarra is not null &&
             await productoRepositoryQuery.ExistsByCodigoBarraAsync(normalizedCodigoBarra, productoId))
         {
-            throw new InvalidOperationException("Ya existe un producto con ese codigo de barras.");
+            throw new InvalidOperationException("Ya existe un producto con ese código de barras.");
         }
 
         if (normalizedCodigoInterno is not null &&
             await productoRepositoryQuery.ExistsByCodigoInternoAsync(normalizedCodigoInterno, productoId))
         {
-            throw new InvalidOperationException("Ya existe un producto con ese codigo interno.");
+            throw new InvalidOperationException("Ya existe un producto con ese código interno.");
         }
     }
 
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private async Task ValidateCategoriaMarcaAsync(int? categoriaId, int? marcaId)
+    {
+        if (categoriaId.HasValue && !await categoriaProductoRepositoryQuery.ExistsAsync(categoriaId.Value))
+        {
+            throw new InvalidOperationException("La categoría seleccionada no existe.");
+        }
+
+        if (marcaId.HasValue && !await marcaProductoRepositoryQuery.ExistsActiveAsync(marcaId.Value))
+        {
+            throw new InvalidOperationException("La marca seleccionada no existe o está inactiva.");
+        }
     }
 }

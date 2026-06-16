@@ -1,0 +1,41 @@
+:is(.settings-card, .products-table-card) {
+    border: 1px solid #dfe4ec;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+body.theme-dark :is(.settings-card, .products-table-card) {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: #151922;
+}
+
+:is(
+    .detail-grid div,
+    .stock-adjust-summary > div,
+    .stock-history-row,
+    .business-hours-summary,
+    .business-hours-day,
+    .business-check,
+    .business-checklist span,
+    .ticket-option,
+    .ticket-visible-group
+) {
+    border: 1px solid #dfe4ec;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+body.theme-dark :is(
+    .detail-grid div,
+    .stock-adjust-summary > div,
+    .stock-history-row,
+    .business-hours-summary,
+    .business-hours-day,
+    .business-check,
+    .business-checklist span,
+    .ticket-option,
+    .ticket-visible-group
+) {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+}

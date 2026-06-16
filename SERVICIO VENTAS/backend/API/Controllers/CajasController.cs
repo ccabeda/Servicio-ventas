@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using ServicioVentas.API.Services;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.UseCases.Cajas.Commands;
@@ -17,18 +17,31 @@ public class CajasController(
     IRegistrarMovimientoCajaHandler registrarMovimientoCajaHandler,
     IGetCajaActualHandler getCajaActualHandler,
     IGetHistorialCajasHandler getHistorialCajasHandler,
-    IGetMovimientosCajaHandler getMovimientosCajaHandler) : ControllerBase
+    IGetMovimientosCajaHandler getMovimientosCajaHandler,
+    ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<CajaDto>>> GetHistorial()
     {
         var cajas = await getHistorialCajasHandler.Handle(new GetHistorialCajasQuery
         {
-            UsuarioId = GetCurrentUserId(),
-            EsAdmin = EsAdmin()
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin
         });
 
         return Ok(cajas);
+    }
+
+    [HttpGet("paginado")]
+    public async Task<IActionResult> GetHistorialPaged([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 20)
+    {
+        return Ok(await getHistorialCajasHandler.HandlePaged(new GetHistorialCajasQuery
+        {
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        }));
     }
 
     [HttpGet("actual")]
@@ -44,29 +57,44 @@ public class CajasController(
         var movimientos = await getMovimientosCajaHandler.Handle(new GetMovimientosCajaQuery
         {
             CajaId = cajaId,
-            UsuarioId = GetCurrentUserId(),
-            EsAdmin = EsAdmin()
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin
         });
         return Ok(movimientos);
+    }
+
+    [HttpGet("{cajaId:int}/movimientos/paginado")]
+    public async Task<IActionResult> GetMovimientosPaged(int cajaId, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 20)
+    {
+        return Ok(await getMovimientosCajaHandler.HandlePaged(new GetMovimientosCajaQuery
+        {
+            CajaId = cajaId,
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        }));
     }
 
     [HttpPost("abrir")]
     public async Task<ActionResult<CajaDto>> Abrir([FromBody] AbrirCajaDto request)
     {
-        request.UsuarioAperturaId = GetCurrentUserId();
-        var caja = await abrirCajaHandler.Handle(new AbrirCajaCommand { Caja = request });
+        var caja = await abrirCajaHandler.Handle(new AbrirCajaCommand
+        {
+            UsuarioId = currentUser.UserId,
+            Caja = request
+        });
         return Ok(caja);
     }
 
     [HttpPost("{cajaId:int}/movimientos")]
     public async Task<ActionResult<MovimientoCajaDto>> RegistrarMovimiento(int cajaId, [FromBody] RegistrarMovimientoCajaDto request)
     {
-        request.UsuarioId = GetCurrentUserId();
         var movimiento = await registrarMovimientoCajaHandler.Handle(new RegistrarMovimientoCajaCommand
         {
             CajaId = cajaId,
-            UsuarioId = GetCurrentUserId(),
-            EsAdmin = EsAdmin(),
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin,
             Movimiento = request
         });
 
@@ -76,28 +104,14 @@ public class CajasController(
     [HttpPost("{cajaId:int}/cerrar")]
     public async Task<ActionResult<CajaDto>> Cerrar(int cajaId, [FromBody] CerrarCajaDto request)
     {
-        request.UsuarioCierreId = GetCurrentUserId();
         var caja = await cerrarCajaHandler.Handle(new CerrarCajaCommand
         {
             CajaId = cajaId,
-            UsuarioId = GetCurrentUserId(),
-            EsAdmin = EsAdmin(),
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin,
             Caja = request
         });
 
         return Ok(caja);
     }
-
-    private int GetCurrentUserId()
-    {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("Usuario no autenticado.");
-
-        if (!int.TryParse(userIdValue, out var userId))
-            throw new UnauthorizedAccessException("Token invalido.");
-
-        return userId;
-    }
-
-    private bool EsAdmin() => User.IsInRole("Admin");
 }

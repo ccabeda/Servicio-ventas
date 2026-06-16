@@ -1,4 +1,4 @@
-import { ROLES } from "../../config.js";
+import { API_ENDPOINTS, ROLES } from "../../config.js";
 import { normalizeOptional } from "../../utils/html.js";
 import { checkboxHtml, fieldHtml, selectHtml, setButtonLoading } from "../../utils/ui.js";
 
@@ -15,7 +15,7 @@ export const crudModalMethods = {
 
   openEntityModal(entity, id = null) {
     if (!this.canManageEntity(entity)) {
-      this.toast("No tienes permisos para realizar esta accion.", "error");
+      this.toast("No tienes permisos para realizar esta acción.", "error");
       return;
     }
 
@@ -23,6 +23,7 @@ export const crudModalMethods = {
 
     this.els.modalEyebrow.textContent = context.eyebrow;
     this.els.modalTitle.textContent = context.title;
+    this.els.modalForm.noValidate = true;
     this.els.modalForm.innerHTML = `
       ${context.fieldsHtml}
       <div class="modal-actions">
@@ -41,46 +42,145 @@ export const crudModalMethods = {
   },
 
   closeModal() {
+    if (this.pendingQuantityResolve) {
+      const resolve = this.pendingQuantityResolve;
+      this.pendingQuantityResolve = null;
+      resolve(null);
+    }
+    this.els.modalForm.onsubmit = null;
+    this.els.modalForm.noValidate = false;
     this.els.modalForm.innerHTML = "";
+    this.els.modalRoot.querySelector(".modal-card")?.classList.remove("marcas-manager-modal", "stock-modal");
     this.els.modalRoot.classList.add("hidden");
+    this.productoDraft = null;
   },
 
   buildModalContext(entity, id) {
     const isEdit = Boolean(id);
 
     if (entity === "producto") {
-      const producto = this.state.productos.find(item => item.Id === id);
+      const producto = id
+        ? this.state.productos.find(item => item.Id === id)
+        : this.productoDraft || null;
+      const categoriaOptions = [
+        { value: "", label: "Sin categoría" },
+        ...this.state.categoriasProducto.map(categoria => ({ value: categoria.Id, label: categoria.Nombre }))
+      ];
+      const marcaOptions = [
+        { value: "", label: "Sin marca" },
+        ...this.state.marcasProducto
+          .filter(marca => marca.Activa || producto?.MarcaId === marca.Id)
+          .map(marca => ({ value: marca.Id, label: marca.Nombre }))
+      ];
       return {
         eyebrow: "Inventario",
-        title: isEdit ? "Editar producto" : "Nuevo producto",
+        title: isEdit ? "Editar producto" : this.productoDraft ? "Duplicar producto" : "Nuevo producto",
         submitLabel: "Guardar producto",
-        endpoint: isEdit ? `/api/productos/${id}` : "/api/productos",
+        endpoint: isEdit ? `${API_ENDPOINTS.productos}/${id}` : API_ENDPOINTS.productos,
         method: isEdit ? "PUT" : "POST",
         fieldsHtml: `
           <div class="modal-grid-2">
             ${fieldHtml("Nombre", "Nombre", producto?.Nombre, true)}
-            ${fieldHtml("Codigo de barra", "CodigoBarra", producto?.CodigoBarra)}
-            ${fieldHtml("Codigo interno", "CodigoInterno", producto?.CodigoInterno)}
+            ${fieldHtml("Código de barra", "CodigoBarra", producto?.CodigoBarra)}
+            ${fieldHtml("Código interno", "CodigoInterno", producto?.CodigoInterno)}
+            ${selectHtml("Categoría", "CategoriaId", categoriaOptions, producto?.CategoriaId ?? "")}
+            ${selectHtml("Marca", "MarcaId", marcaOptions, producto?.MarcaId ?? "")}
             ${fieldHtml("Precio", "Precio", producto?.Precio ?? 0, true, "number", "0.01")}
             ${fieldHtml("Costo", "Costo", producto?.Costo ?? 0, true, "number", "0.01")}
-            ${fieldHtml("Stock", "Stock", producto?.Stock ?? 0, true, "number", "0.01")}
+            ${!isEdit ? fieldHtml("Stock inicial", "Stock", producto?.Stock ?? 0, true, "number", "1") : ""}
             ${checkboxHtml("Activo", "Activo", producto ? producto.Activo : true)}
           </div>
         `,
-        payload: form => ({
-          Nombre: String(form.get("Nombre") || "").trim(),
-          CodigoBarra: normalizeOptional(form.get("CodigoBarra")),
-          CodigoInterno: normalizeOptional(form.get("CodigoInterno")),
-          Precio: Number(form.get("Precio") || 0),
-          Costo: Number(form.get("Costo") || 0),
-          Stock: Number(form.get("Stock") || 0),
-          Activo: form.get("Activo") === "on"
-        }),
+        payload: form => {
+          const payload = {
+            Nombre: String(form.get("Nombre") || "").trim(),
+            CodigoBarra: normalizeOptional(form.get("CodigoBarra")),
+            CodigoInterno: normalizeOptional(form.get("CodigoInterno")),
+            CategoriaId: form.get("CategoriaId") ? Number(form.get("CategoriaId")) : null,
+            MarcaId: form.get("MarcaId") ? Number(form.get("MarcaId")) : null,
+            Precio: Number(form.get("Precio") || 0),
+            Costo: Number(form.get("Costo") || 0),
+            Activo: form.get("Activo") === "on"
+          };
+
+          if (!isEdit) {
+            payload.Stock = Number(form.get("Stock") || 0);
+            if (!Number.isInteger(payload.Stock) || payload.Stock < 0) {
+              throw new Error("El stock inicial debe ser un número entero mayor o igual a cero.");
+            }
+          }
+
+          return payload;
+        },
         refresh: async () => {
           await this.loadProductos();
           this.renderProductosTable();
           this.renderProductosVenta();
           this.renderDashboardStockAlerts();
+        }
+      };
+    }
+
+    if (entity === "categoriaProducto") {
+      const categoria = this.state.categoriasProducto.find(item => item.Id === id);
+      const iconOptions = [
+        { value: "more", label: "Otros" },
+        { value: "bottle", label: "Bebidas" },
+        { value: "basket", label: "Almacén" },
+        { value: "milk", label: "Lácteos" },
+        { value: "cleaner", label: "Limpieza" },
+        { value: "bread", label: "Panadería" },
+        { value: "candy", label: "Golosinas" }
+      ];
+      return {
+        eyebrow: "Inventario",
+        title: isEdit ? "Editar categoría" : "Nueva categoría",
+        submitLabel: "Guardar categoría",
+        endpoint: isEdit ? `${API_ENDPOINTS.categoriasProducto}/${id}` : API_ENDPOINTS.categoriasProducto,
+        method: isEdit ? "PUT" : "POST",
+        fieldsHtml: `
+          <div class="modal-grid-2">
+            ${fieldHtml("Nombre", "Nombre", categoria?.Nombre, true)}
+            ${selectHtml("Ícono", "Icono", iconOptions, categoria?.Icono || "more")}
+            <div class="field color-field">
+              <span>Color</span>
+              <input name="Color" type="color" aria-label="Color de categoría" value="${categoria?.Color || "#ef0000"}">
+            </div>
+          </div>
+        `,
+        payload: form => ({
+          Nombre: String(form.get("Nombre") || "").trim(),
+          Icono: normalizeOptional(form.get("Icono")),
+          Color: normalizeOptional(form.get("Color"))
+        }),
+        refresh: async () => {
+          await this.loadCategoriasProducto();
+          this.renderProductosTable();
+        }
+      };
+    }
+
+    if (entity === "marcaProducto") {
+      const marca = this.state.marcasProducto.find(item => item.Id === id);
+      return {
+        eyebrow: "Inventario",
+        title: isEdit ? "Editar marca" : "Nueva marca",
+        submitLabel: "Guardar marca",
+        endpoint: isEdit ? `${API_ENDPOINTS.marcasProducto}/${id}` : API_ENDPOINTS.marcasProducto,
+        method: isEdit ? "PUT" : "POST",
+        fieldsHtml: `
+          <div class="modal-grid-2">
+            ${fieldHtml("Nombre", "Nombre", marca?.Nombre, true)}
+            ${checkboxHtml("Activa", "Activa", marca ? marca.Activa : true)}
+          </div>
+        `,
+        payload: form => ({
+          Nombre: String(form.get("Nombre") || "").trim(),
+          Activa: form.get("Activa") === "on"
+        }),
+        refresh: async () => {
+          await this.loadMarcasProducto();
+          this.renderProductosTable();
         }
       };
     }
@@ -91,12 +191,12 @@ export const crudModalMethods = {
         eyebrow: "Clientes",
         title: isEdit ? "Editar cliente" : "Nuevo cliente",
         submitLabel: "Guardar cliente",
-        endpoint: isEdit ? `/api/clientes/${id}` : "/api/clientes",
+        endpoint: isEdit ? `${API_ENDPOINTS.clientes}/${id}` : API_ENDPOINTS.clientes,
         method: isEdit ? "PUT" : "POST",
         fieldsHtml: `
           <div class="modal-grid-2">
             ${fieldHtml("Nombre", "Nombre", cliente?.Nombre, true)}
-            ${fieldHtml("Telefono", "Telefono", cliente?.Telefono)}
+            ${fieldHtml("Teléfono", "Telefono", cliente?.Telefono)}
             ${fieldHtml("Deuda", "Deuda", cliente?.Deuda ?? 0, true, "number", "0.01")}
             ${checkboxHtml("Activo", "Activo", cliente ? cliente.Activo : true)}
           </div>
@@ -109,7 +209,7 @@ export const crudModalMethods = {
         }),
         refresh: async () => {
           await this.loadClientes();
-          this.renderClientesTable();
+          await this.renderClientesTable();
           this.renderVentaSelectors();
         }
       };
@@ -121,15 +221,15 @@ export const crudModalMethods = {
         eyebrow: "Seguridad",
         title: isEdit ? "Editar usuario" : "Nuevo usuario",
         submitLabel: "Guardar usuario",
-        endpoint: isEdit ? `/api/usuarios/${id}` : "/api/usuarios",
+        endpoint: isEdit ? `${API_ENDPOINTS.usuarios}/${id}` : API_ENDPOINTS.usuarios,
         method: isEdit ? "PUT" : "POST",
         fieldsHtml: `
           <div class="modal-grid-2">
             ${fieldHtml("Nombre de usuario", "NombreUsuario", usuario?.NombreUsuario, true)}
-            ${fieldHtml(isEdit ? "Nueva contrasena" : "Contrasena", "Password", "", !isEdit, "password")}
+            ${fieldHtml(isEdit ? "Nueva contraseña" : "Contraseña", "Password", "", !isEdit, "password")}
             ${selectHtml("Rol", "Rol", ROLES, usuario?.Rol ?? 2, true)}
             ${checkboxHtml("Activo", "Activo", usuario ? usuario.Activo : true)}
-            ${checkboxHtml("Debe cambiar password", "DebeCambiarPassword", usuario ? usuario.DebeCambiarPassword : true)}
+            ${checkboxHtml("Debe cambiar contraseña", "DebeCambiarPassword", usuario ? usuario.DebeCambiarPassword : true)}
           </div>
         `,
         payload: form => ({
@@ -141,7 +241,7 @@ export const crudModalMethods = {
         }),
         refresh: async () => {
           await this.loadUsuarios();
-          this.renderUsuariosTable();
+          await this.renderUsuariosTable();
         }
       };
     }
@@ -152,7 +252,7 @@ export const crudModalMethods = {
         eyebrow: "Cobro",
         title: isEdit ? "Editar medio de pago" : "Nuevo medio de pago",
         submitLabel: "Guardar medio",
-        endpoint: isEdit ? `/api/mediospago/${id}` : "/api/mediospago",
+        endpoint: isEdit ? `${API_ENDPOINTS.mediosPago}/${id}` : API_ENDPOINTS.mediosPago,
         method: isEdit ? "PUT" : "POST",
         fieldsHtml: `
           <div class="modal-grid-2">
@@ -166,7 +266,7 @@ export const crudModalMethods = {
         }),
         refresh: async () => {
           await this.loadMediosPago();
-          this.renderMediosPagoTable();
+          await this.renderMediosPagoTable();
           this.renderVentaSelectors();
         }
       };
@@ -197,12 +297,14 @@ export const crudModalMethods = {
 
   async deleteEntity(entity, id) {
     if (!this.canManageEntity(entity)) {
-      this.toast("No tienes permisos para realizar esta accion.", "error");
+      this.toast("No tienes permisos para realizar esta acción.", "error");
       return;
     }
 
     const labels = {
       producto: "producto",
+      categoriaProducto: "categoría",
+      marcaProducto: "marca",
       cliente: "cliente",
       usuario: "usuario",
       medioPago: "medio de pago"
@@ -211,7 +313,9 @@ export const crudModalMethods = {
     const confirmed = await this.requestConfirmation({
       eyebrow: "Eliminar",
       title: `Eliminar ${labels[entity]}`,
-      message: `Se desactivara el ${labels[entity]} y dejara de aparecer en los listados operativos.`,
+      message: entity === "categoriaProducto"
+        ? "Se eliminará la categoría y los productos asociados quedarán sin categoría."
+        : `Se desactivará el ${labels[entity]} y dejará de aparecer en los listados operativos.`,
       confirmLabel: "Eliminar"
     });
 
@@ -220,10 +324,12 @@ export const crudModalMethods = {
     }
 
     const endpoints = {
-      producto: `/api/productos/${id}`,
-      cliente: `/api/clientes/${id}`,
-      usuario: `/api/usuarios/${id}`,
-      medioPago: `/api/mediospago/${id}`
+      producto: `${API_ENDPOINTS.productos}/${id}`,
+      categoriaProducto: `${API_ENDPOINTS.categoriasProducto}/${id}`,
+      marcaProducto: `${API_ENDPOINTS.marcasProducto}/${id}`,
+      cliente: `${API_ENDPOINTS.clientes}/${id}`,
+      usuario: `${API_ENDPOINTS.usuarios}/${id}`,
+      medioPago: `${API_ENDPOINTS.mediosPago}/${id}`
     };
 
     try {
@@ -237,18 +343,34 @@ export const crudModalMethods = {
           this.renderProductosVenta();
           this.renderDashboardStockAlerts();
         },
+        categoriaProducto: async () => {
+          if (String(this.els.productosCategoriaFilter.value) === String(id)) {
+            this.els.productosCategoriaFilter.value = "";
+          }
+          await Promise.all([this.loadCategoriasProducto(), this.loadProductos()]);
+          this.renderProductosTable();
+          this.renderProductosVenta();
+        },
+        marcaProducto: async () => {
+          if (String(this.els.productosMarcaFilter.value) === String(id)) {
+            this.els.productosMarcaFilter.value = "";
+          }
+          await Promise.all([this.loadMarcasProducto(), this.loadProductos()]);
+          this.renderProductosTable();
+          this.renderProductosVenta();
+        },
         cliente: async () => {
           await this.loadClientes();
-          this.renderClientesTable();
+          await this.renderClientesTable();
           this.renderVentaSelectors();
         },
         usuario: async () => {
           await this.loadUsuarios();
-          this.renderUsuariosTable();
+          await this.renderUsuariosTable();
         },
         medioPago: async () => {
           await this.loadMediosPago();
-          this.renderMediosPagoTable();
+          await this.renderMediosPagoTable();
           this.renderVentaSelectors();
         }
       };

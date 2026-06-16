@@ -25,6 +25,30 @@ export function rowEmpty(message, colspan) {
   return `<tr><td colspan="${colspan}" class="table-empty">${escapeHtml(message)}</td></tr>`;
 }
 
+export function rowState({ title, description = "", type = "empty", colspan }) {
+  return `
+    <tr>
+      <td colspan="${colspan}" class="table-empty">
+        <div class="table-state table-state-${type}">
+          <span class="table-state-icon" aria-hidden="true"></span>
+          <strong>${escapeHtml(title)}</strong>
+          ${description ? `<small>${escapeHtml(description)}</small>` : ""}
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+export function rowSkeleton(columns, rows = 5) {
+  return Array.from({ length: rows }, () => `
+    <tr class="skeleton-row" aria-hidden="true">
+      ${Array.from({ length: columns }, (_, index) => `
+        <td><span class="skeleton-line ${index === 0 ? "is-wide" : ""}"></span></td>
+      `).join("")}
+    </tr>
+  `).join("");
+}
+
 export function fieldHtml(label, name, value = "", required = false, type = "text", step = "") {
   const requiredAttr = required ? "required" : "";
   const stepAttr = step ? `step="${step}"` : "";

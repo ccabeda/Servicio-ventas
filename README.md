@@ -9,6 +9,7 @@ Sistema POS web local para pequeños comercios, orientado a ventas rapidas, cont
 - Entity Framework Core
 - SQL Server
 - Autenticacion JWT
+- Tests unitarios y tests de integracion con xUnit
 - Arquitectura por capas: API, Application, Domain, Infrastructure
 
 ## Modulos implementados
@@ -22,19 +23,28 @@ Sistema POS web local para pequeños comercios, orientado a ventas rapidas, cont
 - Medios de pago
 - Configuracion del negocio
 - Reportes
+- Auditoria
+- Configuracion de ticket e impresoras
 
 ## Reglas de acceso
 
 - `Admin`: gestion completa de usuarios, productos, clientes, medios de pago y configuracion
 - `Cajero`: ventas, caja, lectura operativa y reportes acotados a su usuario
+- El backend ya emite permisos granulares en el JWT mediante claims `permission`.
+- Por ahora los permisos se asignan por rol en codigo: `Admin` recibe todos los permisos.
+- No se usa ASP.NET Identity completo. Se usa entidad propia `Usuario`, JWT propio y `PasswordHasher<Usuario>` solo para hashear/verificar passwords.
 
 ## Funcionalidad destacada
 
 - Login con JWT
 - Caja con apertura, cierre, movimientos e historial
 - Ventas con carrito, cliente, medio de pago y ticket
-- Baja logica para entidades administrativas
+- Baja logica para entidades administrativas mediante `Activo` / `Activa`
 - Reportes con filtros por fecha y exportacion CSV
+- Paginado backend con `PagedResultDto`
+- Auditoria backend para acciones sensibles
+- Respuestas de error estandarizadas con `message`, `success` y `errors`
+- Configuracion de ticket e impresoras termicas
 
 ## Estructura del proyecto
 
@@ -43,17 +53,24 @@ Sistema POS web local para pequeños comercios, orientado a ventas rapidas, cont
 - `SERVICIO VENTAS/backend/Application`: casos de uso, DTOs, handlers, validaciones
 - `SERVICIO VENTAS/backend/Domain`: entidades y enums del dominio
 - `SERVICIO VENTAS/backend/Infrastructure`: persistencia, repositorios, EF Core
+- `SERVICIO VENTAS/backend/Tests/ServicioVentas.Application.Tests`: tests unitarios de casos de uso
+- `SERVICIO VENTAS/backend/Tests/ServicioVentas.API.IntegrationTests`: tests de integracion de endpoints
 
 ## Endpoints principales
 
 - `api/auth`
+- `api/auditoria`
 - `api/productos`
+- `api/categoriasproducto`
+- `api/marcasproducto`
 - `api/ventas`
 - `api/cajas`
 - `api/clientes`
 - `api/usuarios`
 - `api/mediospago`
 - `api/configuracionesnegocio`
+- `api/configuracionesticket`
+- `api/impresoras`
 - `api/reportes`
 
 ## Requisitos
@@ -104,6 +121,44 @@ API backend:
 - `http://localhost:5272`
 
 El frontend usa proxy de Vite para redirigir `/api` al backend.
+
+## Tests
+
+Desde `SERVICIO VENTAS`:
+
+```powershell
+dotnet test "SERVICIO VENTAS.sln"
+```
+
+Actualmente se ejecutan:
+
+- tests unitarios de `Application`
+- tests de integracion de la API en memoria
+
+## Migraciones EF Core
+
+Crear una migracion:
+
+```powershell
+dotnet ef migrations add NombreMigracion --project "backend/Infrastructure/ServicioVentas.Infrastructure.csproj" --startup-project "backend/API/ServicioVentas.API.csproj"
+```
+
+Aplicar migraciones:
+
+```powershell
+dotnet ef database update --project "backend/Infrastructure/ServicioVentas.Infrastructure.csproj" --startup-project "backend/API/ServicioVentas.API.csproj"
+```
+
+## Convenciones backend
+
+- Controllers livianos: reciben request y delegan en handlers.
+- La logica de negocio vive en `Application/UseCases`.
+- Las validaciones de campos viven en FluentValidation.
+- Las reglas de negocio se validan en handlers/services.
+- EF Core y repositorios viven en `Infrastructure`.
+- Las tablas usan nombres en mayuscula y snake case.
+- Las respuestas paginadas usan `PagedResultDto`.
+- Los errores controlados usan respuesta estandar `ApiErrorDto`.
 
 ## Notas
 

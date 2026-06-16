@@ -1,4 +1,6 @@
+import { API_ENDPOINTS } from "../../config.js";
 import { removeKey, saveJson, saveString } from "../../utils/storage.js";
+import { setDateFormatPreferences } from "../../utils/formatters.js";
 import { setButtonLoading } from "../../utils/ui.js";
 
 export const authDataMethods = {
@@ -10,14 +12,14 @@ export const authDataMethods = {
     };
 
     if (!payload.NombreUsuario || !payload.Password) {
-      this.toast("Completa usuario y contrasena.", "error");
+      this.toast("Completa usuario y contraseña.", "error");
       return;
     }
 
     setButtonLoading(this.els.loginButton, true, "Ingresando...");
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(API_ENDPOINTS.authLogin, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -25,21 +27,29 @@ export const authDataMethods = {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.message || "No se pudo iniciar sesion.");
+        throw new Error(this.api.extractErrorMessage(data) || "No se pudo iniciar sesión.");
       }
 
       this.state.token = data.Token;
       this.state.session = {
         UsuarioId: data.UsuarioId,
         NombreUsuario: data.NombreUsuario,
-        Rol: data.Rol
+        Rol: data.Rol,
+        Permisos: data.Permisos || []
       };
 
       saveString(this.STORAGE_KEYS.token, this.state.token);
       saveJson(this.STORAGE_KEYS.session, this.state.session);
+      if (this.els.rememberUserCheckbox.checked) {
+        this.state.rememberedUser = payload.NombreUsuario;
+        saveString(this.STORAGE_KEYS.rememberedUser, payload.NombreUsuario);
+      } else {
+        this.state.rememberedUser = "";
+        removeKey(this.STORAGE_KEYS.rememberedUser);
+      }
 
       this.syncAuthView();
-      this.toast(`Sesion iniciada como ${data.NombreUsuario}.`, "success");
+      this.toast(`Sesión iniciada como ${data.NombreUsuario}.`, "success");
       await this.initializeApp();
     } catch (error) {
       this.toast(this.getErrorMessage(error), "error");
@@ -50,6 +60,7 @@ export const authDataMethods = {
 
   logout(showMessage = true) {
     this.setAppLoading(false);
+    this.stopClock();
     this.state.token = "";
     this.state.session = null;
     this.state.cart = [];
@@ -59,10 +70,11 @@ export const authDataMethods = {
     this.syncAuthView();
 
     this.els.loginPassword.value = "";
+    this.restoreRememberedUser();
     this.els.loginUser.focus();
 
     if (showMessage) {
-      this.toast("Sesion cerrada.", "info");
+      this.toast("Sesión cerrada.", "info");
     }
   },
 
@@ -74,55 +86,167 @@ export const authDataMethods = {
   },
 
   async loadProductos() {
-    this.state.productos = await this.api.request("/api/productos");
+    this.state.productos = await this.api.request(API_ENDPOINTS.productos);
+  },
+
+  async loadProductosPage() {
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.productosPage.PageIndex || 1),
+      pageSize: "20",
+      estado: this.els.productosEstadoFilter.value || "activos"
+    });
+    const search = this.els.productosFilterInput.value.trim();
+    const categoriaId = this.els.productosCategoriaFilter.value;
+    const marcaId = this.els.productosMarcaFilter.value;
+
+    if (search) params.set("search", search);
+    if (categoriaId) params.set("categoriaId", categoriaId);
+    if (marcaId) params.set("marcaId", marcaId);
+
+    this.state.productosPage = await this.api.request(`${API_ENDPOINTS.productosPaginado}?${params.toString()}`);
+  },
+
+  async loadCategoriasProducto() {
+    this.state.categoriasProducto = await this.api.request(API_ENDPOINTS.categoriasProducto);
+  },
+
+  async loadMarcasProducto() {
+    this.state.marcasProducto = await this.api.request(API_ENDPOINTS.marcasProducto);
   },
 
   async loadClientes() {
-    this.state.clientes = await this.api.request("/api/clientes");
+    this.state.clientes = await this.api.request(API_ENDPOINTS.clientes);
+  },
+
+  async loadClientesPage() {
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.clientesPage.PageIndex || 1),
+      pageSize: String(this.state.clientesPage.PageSize || 20),
+      estado: this.els.clientesEstadoFilter.value || "activos"
+    });
+    const search = this.els.clientesFilterInput.value.trim();
+    if (search) params.set("search", search);
+
+    this.state.clientesPage = await this.api.request(`${API_ENDPOINTS.clientesPaginado}?${params.toString()}`);
   },
 
   async loadUsuarios() {
-    if (!this.isAdmin()) {
+    if (!this.canManageEntity("usuario")) {
       this.state.usuarios = [];
       return;
     }
 
-    this.state.usuarios = await this.api.request("/api/usuarios");
+    this.state.usuarios = await this.api.request(API_ENDPOINTS.usuarios);
+  },
+
+  async loadUsuariosPage() {
+    if (!this.canManageEntity("usuario")) {
+      this.state.usuariosPage = this.createEmptyPage(this.state.usuariosPage.PageSize || 20);
+      return;
+    }
+
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.usuariosPage.PageIndex || 1),
+      pageSize: String(this.state.usuariosPage.PageSize || 20),
+      estado: this.els.usuariosEstadoFilter.value || "activos"
+    });
+    const search = this.els.usuariosFilterInput.value.trim();
+    if (search) params.set("search", search);
+
+    this.state.usuariosPage = await this.api.request(`${API_ENDPOINTS.usuariosPaginado}?${params.toString()}`);
   },
 
   async loadMediosPago() {
-    this.state.mediosPago = await this.api.request("/api/mediospago");
+    this.state.mediosPago = await this.api.request(API_ENDPOINTS.mediosPago);
+  },
+
+  async loadMediosPagoPage() {
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.mediosPagoPage.PageIndex || 1),
+      pageSize: String(this.state.mediosPagoPage.PageSize || 20),
+      estado: this.els.mediosPagoEstadoFilter.value || "activos"
+    });
+    const search = this.els.mediosPagoFilterInput.value.trim();
+    if (search) params.set("search", search);
+
+    this.state.mediosPagoPage = await this.api.request(`${API_ENDPOINTS.mediosPagoPaginado}?${params.toString()}`);
   },
 
   async loadVentas() {
-    this.state.ventas = await this.api.request("/api/ventas");
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.ventasPage.PageIndex || 1),
+      pageSize: String(this.state.ventasPage.PageSize || 8)
+    });
+
+    this.state.ventasPage = await this.api.request(`${API_ENDPOINTS.ventasPaginado}?${params.toString()}`);
+    this.state.ventas = this.state.ventasPage.Items || [];
   },
 
   async loadCaja() {
-    this.state.cajaActual = await this.api.request("/api/cajas/actual");
-    this.state.movimientosCaja = this.state.cajaActual?.Id
-      ? await this.api.request(`/api/cajas/${this.state.cajaActual.Id}/movimientos`)
-      : [];
+    this.state.cajaActual = await this.api.request(API_ENDPOINTS.cajaActual);
+    await this.loadMovimientosCajaPage();
 
     if (this.state.cajaActual?.Abierta) {
       this.state.lastClosedCaja = null;
     }
   },
 
+  async loadMovimientosCajaPage() {
+    if (!this.state.cajaActual?.Id) {
+      this.state.movimientosCajaPage = this.createEmptyPage(this.state.movimientosCajaPage.PageSize || 10);
+      this.state.movimientosCaja = [];
+      return;
+    }
+
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.movimientosCajaPage.PageIndex || 1),
+      pageSize: String(this.state.movimientosCajaPage.PageSize || 10)
+    });
+
+    this.state.movimientosCajaPage = await this.api.request(`/api/cajas/${this.state.cajaActual.Id}/movimientos/paginado?${params.toString()}`);
+    this.state.movimientosCaja = this.state.movimientosCajaPage.Items || [];
+  },
+
   async loadHistorialCajas() {
-    this.state.historialCajas = await this.api.request("/api/cajas");
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.historialCajasPage.PageIndex || 1),
+      pageSize: String(this.state.historialCajasPage.PageSize || 10)
+    });
+
+    this.state.historialCajasPage = await this.api.request(`${API_ENDPOINTS.cajasPaginado}?${params.toString()}`);
+    this.state.historialCajas = this.state.historialCajasPage.Items || [];
   },
 
   async loadConfiguracion() {
-    this.state.configuraciones = await this.api.request("/api/configuracionesnegocio");
+    const [configuraciones, configuracionTicket] = await Promise.all([
+      this.api.request(API_ENDPOINTS.configuracionesNegocio),
+      this.api.request(API_ENDPOINTS.configuracionTicketPrincipal)
+    ]);
+
+    this.state.configuraciones = configuraciones;
+    this.state.configuracionTicket = configuracionTicket;
+    await this.loadImpresoras();
+    setDateFormatPreferences(this.state.configuraciones[0]);
+    this.applyBrandColor(this.state.configuraciones[0]?.ColorPrincipal);
+    this.applyVisualPreferences();
+  },
+
+  async loadImpresoras() {
+    try {
+      this.state.impresoras = await this.api.request(API_ENDPOINTS.impresoras);
+      this.state.impresorasError = "";
+    } catch (error) {
+      this.state.impresoras = [];
+      this.state.impresorasError = this.getErrorMessage(error);
+    }
   },
 
   async loadReportes() {
     const query = this.buildReportQuery();
     const [resumen, ventas, topProductos] = await Promise.all([
-      this.api.request(`/api/reportes/resumen-ventas${query}`),
-      this.api.request(`/api/reportes/ventas${query}`),
-      this.api.request(`/api/reportes/productos-mas-vendidos${query}${query ? "&" : "?"}top=8`)
+      this.api.request(`${API_ENDPOINTS.reportesResumenVentas}${query}`),
+      this.api.request(`${API_ENDPOINTS.reportesVentas}${query}`),
+      this.api.request(`${API_ENDPOINTS.reportesProductosMasVendidos}${query}${query ? "&" : "?"}top=8`)
     ]);
 
     this.state.reportes = { resumen, ventas, topProductos };

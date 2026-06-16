@@ -12,7 +12,7 @@ public class CreateUsuarioDtoValidator : AbstractValidator<CreateUsuarioDto>
             .MaximumLength(100);
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("La password es obligatoria.");
+            .NotEmpty().WithMessage("La contraseña es obligatoria.");
     }
 }
 

@@ -24,9 +24,12 @@ appsettings.Local.json
 
 # Node
 node_modules/
+dist/
+.vite/
 
 # Test and coverage
 TestResults/
+test-results/
 coverage/
 
 # Local documentation assets

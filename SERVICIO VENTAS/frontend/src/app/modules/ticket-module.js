@@ -3,9 +3,13 @@ import { escapeHtml } from "../../utils/html.js";
 
 export const ticketMethods = {
   openTicketModal(venta, ticketItems) {
-    const config = this.state.configuraciones[0];
+    const config = this.state.configuraciones[0] || {};
+    const ticketConfig = this.getTicketConfig();
+    const fechaHora = ticketConfig?.ImprimirFechaHoraTicket !== false ? formatDateTime(venta.Fecha) : "";
     const medioPago = this.state.mediosPago.find(item => item.Id === venta.MedioPagoId);
     const cliente = this.state.clientes.find(item => item.Id === venta.ClienteId);
+    const showBusinessData = ticketConfig?.ImprimirDatosNegocioTicket !== false;
+    const businessLines = [config?.Direccion].filter(Boolean);
     const details = ticketItems.map(item => `
       <div class="ticket-row">
         <span>${escapeHtml(item.nombre)} x${formatNumber(item.cantidad)}</span>
@@ -13,28 +17,65 @@ export const ticketMethods = {
       </div>
     `).join("");
 
-    this.els.ticketContent.innerHTML = `
+    const showSubtotalTotal = ticketConfig?.ImprimirSubtotalTotalTicket !== false;
+    const summaryRows = [
+      showSubtotalTotal ? `<div class="ticket-row"><span>Subtotal</span><strong>${formatMoney(venta.Subtotal)}</strong></div>` : "",
+      ticketConfig?.ImprimirDescuentoRecargoTicket !== false ? `<div class="ticket-row"><span>Descuento</span><strong>${formatNumber(venta.Descuento)}%</strong></div>` : "",
+      ticketConfig?.ImprimirDescuentoRecargoTicket !== false ? `<div class="ticket-row"><span>Recargo</span><strong>${formatMoney(venta.Recargo)}</strong></div>` : "",
+      showSubtotalTotal ? `<div class="ticket-row"><span>Total</span><strong>${formatMoney(venta.Total)}</strong></div>` : ""
+    ].filter(Boolean).join("");
+
+    const saleMetaRows = [
+      fechaHora ? `<div class="ticket-row"><span>Fecha</span><strong>${fechaHora}</strong></div>` : "",
+      ticketConfig?.ImprimirNumeroTicket !== false ? `<div class="ticket-row"><span>Venta</span><strong>#${venta.Id}</strong></div>` : "",
+      ticketConfig?.ImprimirCajeroTicket !== false ? `<div class="ticket-row"><span>Cajero</span><strong>${escapeHtml(this.state.session?.NombreUsuario || "")}</strong></div>` : ""
+    ].join("");
+
+    const ticketHtml = `
       <div class="ticket-header">
-        <h4>${escapeHtml(config?.NombreNegocio || "Servicio Ventas POS")}</h4>
-        <div>${escapeHtml(config?.Direccion || "")}</div>
-        <div>${escapeHtml(config?.Telefono || "")}</div>
+        <div class="ticket-header-main">
+          <h4>${escapeHtml(config?.NombreNegocio || "CajaGo")}</h4>
+          ${showBusinessData && businessLines.length ? `<div>${businessLines.map(line => escapeHtml(line)).join("<br>")}</div>` : ""}
+        </div>
       </div>
-      <div class="ticket-row"><span>Venta</span><strong>#${venta.Id}</strong></div>
-      <div class="ticket-row"><span>Fecha</span><strong>${formatDateTime(venta.Fecha)}</strong></div>
-      <div class="ticket-row"><span>Cajero</span><strong>${escapeHtml(this.state.session?.NombreUsuario || "")}</strong></div>
+      ${saleMetaRows}
       <div class="ticket-row"><span>Pago</span><strong>${escapeHtml(medioPago?.Nombre || "-")}</strong></div>
       <div class="ticket-row"><span>Cliente</span><strong>${escapeHtml(cliente?.Nombre || "Consumidor final")}</strong></div>
       <hr>
       ${details}
-      <hr>
-      <div class="ticket-row"><span>Subtotal</span><strong>${formatMoney(venta.Subtotal)}</strong></div>
-      <div class="ticket-row"><span>Descuento</span><strong>${formatMoney(venta.Descuento)}</strong></div>
-      <div class="ticket-row"><span>Recargo</span><strong>${formatMoney(venta.Recargo)}</strong></div>
-      <div class="ticket-row"><span>Total</span><strong>${formatMoney(venta.Total)}</strong></div>
-      ${config?.MensajeTicket ? `<hr><div>${escapeHtml(config.MensajeTicket)}</div>` : ""}
+      ${summaryRows ? `<hr>${summaryRows}` : ""}
+      ${ticketConfig?.MensajeTicket ? `<hr><div>${escapeHtml(ticketConfig.MensajeTicket)}</div>` : ""}
     `;
 
+    this.els.ticketContent.innerHTML = ticketConfig?.ImprimirCopiaTicket
+      ? `
+        <section class="ticket-copy">
+          <div class="ticket-copy-label">Original</div>
+          ${ticketHtml}
+        </section>
+        <section class="ticket-copy">
+          <div class="ticket-copy-label">Copia</div>
+          ${ticketHtml}
+        </section>
+      `
+      : ticketHtml;
+
     this.els.ticketModal.classList.remove("hidden");
+
+    if (ticketConfig?.VistaPreviaAntesImprimir === false) {
+      window.setTimeout(() => this.printTicket({ closeAfterPrint: true }), 80);
+    }
+  },
+
+  printTicket({ closeAfterPrint = false } = {}) {
+    if (closeAfterPrint) {
+      const close = () => {
+        window.removeEventListener("afterprint", close);
+        this.closeTicketModal();
+      };
+      window.addEventListener("afterprint", close);
+    }
+    window.print();
   },
 
   closeTicketModal() {

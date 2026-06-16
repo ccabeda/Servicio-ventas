@@ -1,0 +1,238 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}{\f1 Consolas;}}
+\fs24
+\b Guia de pruebas del front - Servicio Ventas POS\b0\par
+\par
+Este documento sirve para probar el sistema completo paso a paso con el backend y el frontend levantados en local.\par
+\par
+\b 1. Preparacion\b0\par
+\par
+Antes de probar, verificar esto:\par
+- Backend corriendo en \f1 http://localhost:5272\f0\par
+- Swagger accesible en \f1 http://localhost:5272/swagger\f0\par
+- Front corriendo con Vite en \f1 http://localhost:5173\f0\par
+- Base de datos conectada\par
+\par
+\b 2. Levantar backend\b0\par
+\par
+Abrir una terminal en la carpeta del proyecto y ejecutar:\par
+\f1 dotnet run --project "SERVICIO VENTAS\backend\API\ServicioVentas.API.csproj"\f0\par
+\par
+Esperar a ver algo similar a:\par
+\f1 Now listening on: http://localhost:5272\f0\par
+\par
+\b 3. Levantar frontend\b0\par
+\par
+Abrir otra terminal y ejecutar:\par
+\f1 cd "C:\Users\cabed\OneDrive\Desktop\PAGINA TRABAJO\SERVICIO VENTAS\frontend"\par
+npm run dev\f0\par
+\par
+Abrir en navegador:\par
+\f1 http://localhost:5173\f0\par
+\par
+\b 4. Login\b0\par
+\par
+Ingresar con:\par
+- Usuario: \f1 admin\f0\par
+- Contrasena: \f1 1234\f0\par
+\par
+Resultado esperado:\par
+- Debe entrar al dashboard\par
+- Debe verse el nombre del usuario en la barra lateral\par
+- Debe mostrarse estado de API conectada\par
+\par
+\b 5. Configuracion inicial\b0\par
+\par
+Ir a la vista \b Configuracion\b0.\par
+\par
+Cargar al menos:\par
+- Nombre del negocio\par
+- Telefono\par
+- Direccion\par
+- Mensaje de ticket\par
+\par
+Guardar.\par
+\par
+Resultado esperado:\par
+- Mensaje de confirmacion\par
+- Los datos deben seguir cargados si se vuelve a entrar a la vista\par
+\par
+\b 6. Crear medio de pago\b0\par
+\par
+Ir a \b Medios de Pago\b0.\par
+\par
+Crear uno nuevo, por ejemplo:\par
+- Nombre: \f1 Efectivo\f0\par
+\par
+Resultado esperado:\par
+- Se agrega a la tabla\par
+- Queda disponible luego en la pantalla de ventas\par
+\par
+\b 7. Crear producto\b0\par
+\par
+Ir a \b Productos\b0.\par
+\par
+Crear un producto de prueba:\par
+- Nombre: \f1 Coca 500\f0\par
+- Codigo interno: \f1 C500\f0\par
+- Precio: \f1 1500\f0\par
+- Costo: \f1 900\f0\par
+- Stock: \f1 10\f0\par
+- Activo: si\par
+\par
+Resultado esperado:\par
+- El producto aparece en la tabla\par
+- El stock se muestra correctamente\par
+- El producto aparece luego en ventas\par
+\par
+\b 8. Crear cliente\b0\par
+\par
+Ir a \b Clientes\b0.\par
+\par
+Crear uno nuevo, por ejemplo:\par
+- Nombre: \f1 Cliente Prueba\f0\par
+- Telefono: \f1 1122334455\f0\par
+- Deuda: \f1 0\f0\par
+\par
+Resultado esperado:\par
+- El cliente aparece en la tabla\par
+- Debe poder seleccionarse luego en ventas\par
+\par
+\b 9. Abrir caja\b0\par
+\par
+Ir a \b Caja\b0.\par
+\par
+En el formulario de abrir caja, ingresar:\par
+- Monto inicial: \f1 10000\f0\par
+\par
+Resultado esperado:\par
+- Mensaje de caja abierta\par
+- Debe verse la caja actual\par
+- En ventas debe cambiar el estado de caja a abierta\par
+\par
+\b 10. Registrar movimiento de caja\b0\par
+\par
+En la misma vista \b Caja\b0, registrar un movimiento manual:\par
+- Tipo: \f1 Ingreso\f0 o \f1 Egreso\f0\par
+- Concepto: \f1 Prueba movimiento\f0\par
+- Monto: \f1 500\f0\par
+\par
+Resultado esperado:\par
+- Debe mostrarse en la tabla de movimientos\par
+- No debe dar error si la caja esta abierta\par
+\par
+\b 11. Hacer una venta\b0\par
+\par
+Ir a \b Ventas\b0.\par
+\par
+Pasos:\par
+- Buscar el producto creado\par
+- Agregarlo al carrito\par
+- Elegir cliente\par
+- Elegir medio de pago\par
+- Confirmar venta\par
+\par
+Resultado esperado:\par
+- Se registra la venta\par
+- Se abre el modal del ticket\par
+- Se limpia el carrito\par
+- El stock del producto baja\par
+- La venta aparece en ultimas ventas\par
+\par
+\b 12. Validar restricciones en ventas\b0\par
+\par
+Probar estos casos:\par
+- Intentar vender sin caja abierta\par
+- Intentar cobrar con carrito vacio\par
+- Intentar vender mas stock del disponible\par
+- Intentar vender sin seleccionar medio de pago\par
+\par
+Resultado esperado:\par
+- El sistema debe mostrar mensajes de error claros\par
+- No debe registrar ventas invalidas\par
+\par
+\b 13. Revisar dashboard\b0\par
+\par
+Ir a \b Dashboard\b0.\par
+\par
+Verificar:\par
+- Estadisticas del periodo\par
+- Estado de caja\par
+- Datos del negocio\par
+- Ventas recientes\par
+- Alertas de stock\par
+\par
+Resultado esperado:\par
+- Deben verse datos reales luego de crear ventas y productos\par
+\par
+\b 14. Revisar reportes\b0\par
+\par
+Ir a \b Reportes\b0.\par
+\par
+Probar:\par
+- Filtro por fecha\par
+- Boton Hoy\par
+- Boton 7 dias\par
+- Boton Mes\par
+- Exportar CSV\par
+\par
+Resultado esperado:\par
+- Deben aparecer ventas del periodo\par
+- Debe verse resumen de ventas\par
+- Debe verse top de productos\par
+- El CSV debe descargarse\par
+\par
+\b 15. Revisar usuarios\b0\par
+\par
+Ir a \b Usuarios\b0.\par
+\par
+Crear un usuario de prueba:\par
+- Nombre de usuario: \f1 cajero1\f0\par
+- Contrasena: \f1 1234\f0\par
+- Rol: \f1 Cajero\f0\par
+\par
+Resultado esperado:\par
+- El usuario aparece en tabla\par
+- Luego deberia poder iniciar sesion\par
+\par
+\b 16. Cerrar caja\b0\par
+\par
+Ir a \b Caja\b0 y cerrar la caja:\par
+- Monto final: el que corresponda\par
+\par
+Resultado esperado:\par
+- Caja cerrada\par
+- Ya no debe dejar vender hasta volver a abrir una caja\par
+\par
+\b 17. Prueba visual y UX\b0\par
+\par
+Revisar tambien:\par
+- Responsive en escritorio y celular\par
+- Dark mode\par
+- Botones con spinner de carga\par
+- Toasts de exito y error\par
+- Modal de ticket\par
+- Navegacion lateral\par
+\par
+\b 18. Si algo falla\b0\par
+\par
+Revisar en este orden:\par
+1. Que el backend siga vivo en \f1 http://localhost:5272/swagger\f0\par
+2. Que el frontend siga vivo en \f1 http://localhost:5173\f0\par
+3. Recargar con \f1 Ctrl+F5\f0\par
+4. Revisar consola del navegador\par
+5. Revisar terminal del backend\par
+\par
+\b 19. Resultado final esperado\b0\par
+\par
+Si todo esta bien, el sistema debe permitir:\par
+- iniciar sesion\par
+- configurar el negocio\par
+- crear datos base\par
+- abrir caja\par
+- vender\par
+- descontar stock\par
+- mostrar ticket\par
+- visualizar reportes\par
+- trabajar desde el front sin errores criticos\par
+}

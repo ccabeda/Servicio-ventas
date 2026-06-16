@@ -1,0 +1,238 @@
+.ticket-content {
+    margin-top: 12px;
+    padding: 18px;
+    background: var(--panel-strong);
+    border-radius: 18px;
+    border: 1px dashed rgba(38, 25, 15, 0.18);
+}
+
+.ticket-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.ticket-header-main {
+    flex: 1;
+}
+
+.ticket-header-main h4 {
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.ticket-header-main > div {
+    text-align: center;
+}
+
+.ticket-header-datetime {
+    display: grid;
+    gap: 4px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.ticket-header-datetime span {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.ticket-header-datetime strong {
+    color: #0f172a;
+    font-size: 0.86rem;
+}
+
+.ticket-content hr {
+    border: 0;
+    border-top: 1px dashed rgba(38, 25, 15, 0.2);
+    margin: 14px 0;
+}
+
+.ticket-row,
+.summary-line {
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+}
+
+.ticket-copy + .ticket-copy {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed rgba(38, 25, 15, 0.28);
+}
+
+.ticket-copy-label {
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+}
+
+body.ticket-large .ticket-content {
+    font-size: 1.2rem;
+}
+
+body.ticket-large .ticket-row {
+    font-size: 1.2rem;
+}
+
+body.ticket-large .ticket-header-main h4 {
+    font-size: 2rem;
+}
+
+body.ticket-large .ticket-header-datetime {
+    font-size: 0.85rem;
+}
+
+body.ticket-large .ticket-header-datetime strong {
+    font-size: 1.02rem;
+}
+
+body.hide-help-messages .helper-inline,
+body.hide-help-messages .help-card,
+body.hide-help-messages .auth-help,
+body.hide-help-messages .home-tip {
+    display: none;
+}
+
+.ranking-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+}
+
+.rank-number {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(20, 58, 82, 0.1);
+    font-weight: 800;
+}
+
+.toast-container {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    display: grid;
+    gap: 12px;
+    z-index: 40;
+}
+
+.toast {
+    min-width: 260px;
+    max-width: 360px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    color: white;
+    box-shadow: var(--shadow);
+    animation: slide-in 220ms ease;
+}
+
+.toast.success {
+    background: linear-gradient(135deg, #216869, #2d8f76);
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #8d1e12, #c63d26);
+}
+
+.toast.info {
+    background: linear-gradient(135deg, #143a52, #215f85);
+}
+
+.context-menu {
+    position: fixed;
+    z-index: 80;
+    min-width: 180px;
+    padding: 8px;
+    border: 1px solid #d8dee9;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+}
+
+.context-menu button {
+    width: 100%;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #111827;
+    text-align: left;
+    font-weight: 800;
+}
+
+.context-menu button:hover {
+    background: rgba(var(--brand-rgb), 0.08);
+    color: var(--brand);
+}
+
+.import-errors-list {
+    max-height: 260px;
+    overflow: auto;
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(141, 30, 18, 0.14);
+    border-radius: 8px;
+    background: rgba(141, 30, 18, 0.05);
+}
+
+.import-errors-list p {
+    margin: 0;
+    color: var(--danger);
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+
+.modal-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-toolbar svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.marcas-manager-modal {
+    width: min(860px, calc(100vw - 40px));
+    max-height: calc(100vh - 48px);
+}
+
+.marcas-manager-table {
+    max-height: min(420px, calc(100vh - 330px));
+}
+
+body.theme-dark .context-menu {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: #1f2630;
+}
+
+body.theme-dark .context-menu button {
+    color: #f9fafb;
+}
+
+body.theme-dark .context-menu button:hover {
+    color: #ffb4b4;
+}
+

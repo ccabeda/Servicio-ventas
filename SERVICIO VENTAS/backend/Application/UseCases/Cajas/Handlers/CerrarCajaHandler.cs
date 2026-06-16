@@ -1,8 +1,12 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.IRepository.ICommand;
 using ServicioVentas.Application.IRepository.IQuery;
+using ServicioVentas.Application.Services;
 using ServicioVentas.Application.UseCases.Cajas.Commands;
 using ServicioVentas.Domain.Enums;
 using ServicioVentas.Domain.Models;
@@ -13,6 +17,10 @@ public class CerrarCajaHandler(
     IMapper mapper,
     ICajaRepositoryCommand cajaRepositoryCommand,
     ICajaRepositoryQuery cajaRepositoryQuery,
+    IConfiguracionNegocioRepositoryQuery configuracionQueryRepo,
+    IClock clock,
+    IAuditoriaService auditoriaService,
+    ILogger<CerrarCajaHandler> logger,
     ServicioVentas.Application.IUnitOfWork.IUnitOfWork unitOfWork) : ICerrarCajaHandler
 {
     public async Task<CajaDto> Handle(CerrarCajaCommand command)
@@ -31,12 +39,19 @@ public class CerrarCajaHandler(
         }
 
         var request = command.Caja;
+        var configuracion = await configuracionQueryRepo.GetPrincipalAsync();
+        if (configuracion?.PedirMotivoCerrarCaja != false && string.IsNullOrWhiteSpace(request.MotivoCierre))
+        {
+            throw new InvalidOperationException("El motivo de cierre de caja es obligatorio.");
+        }
+
         var saldoSistema = await cajaRepositoryQuery.GetSaldoSistemaByCajaIdAsync(caja.Id);
 
-        caja.FechaCierre = DateTime.UtcNow;
+        caja.FechaCierre = clock.UtcNow;
         caja.MontoFinal = request.MontoFinal;
         caja.Diferencia = request.MontoFinal - saldoSistema;
-        caja.UsuarioCierreId = request.UsuarioCierreId;
+        caja.MotivoCierre = string.IsNullOrWhiteSpace(request.MotivoCierre) ? null : request.MotivoCierre.Trim();
+        caja.UsuarioCierreId = command.UsuarioId;
         caja.Abierta = false;
 
         await cajaRepositoryCommand.UpdateCajaAsync(caja);
@@ -44,15 +59,37 @@ public class CerrarCajaHandler(
         var movimiento = new MovimientoCaja
         {
             CajaId = caja.Id,
-            Fecha = DateTime.UtcNow,
+            Fecha = clock.UtcNow,
             Tipo = TipoMovimientoCaja.Cierre,
             Concepto = "Cierre de caja",
             Monto = request.MontoFinal,
-            UsuarioId = request.UsuarioCierreId
+            UsuarioId = command.UsuarioId
         };
 
         await cajaRepositoryCommand.AddMovimientoAsync(movimiento);
+        await auditoriaService.RegistrarAsync(new RegistrarAuditoriaEventoDto
+        {
+            UsuarioId = command.UsuarioId,
+            Modulo = "Caja",
+            Accion = "Cierre",
+            Entidad = "Caja",
+            EntidadId = caja.Id.ToString(),
+            Detalle = $"Caja {caja.Id} cerrada con monto final {request.MontoFinal:0.##} y diferencia {caja.Diferencia:0.##}.",
+            ValoresNuevosJson = JsonSerializer.Serialize(new
+            {
+                montoFinal = request.MontoFinal,
+                saldoSistema,
+                diferencia = caja.Diferencia,
+                motivo = caja.MotivoCierre
+            })
+        });
         await unitOfWork.SaveChangesAsync();
+        logger.LogInformation(
+            "Caja {CajaId} cerrada por usuario {UsuarioId}. Monto final {MontoFinal}. Diferencia {Diferencia}.",
+            caja.Id,
+            command.UsuarioId,
+            request.MontoFinal,
+            caja.Diferencia);
 
         return mapper.Map<CajaDto>(caja);
     }

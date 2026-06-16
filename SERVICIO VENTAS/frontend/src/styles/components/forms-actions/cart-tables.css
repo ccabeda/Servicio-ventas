@@ -1,0 +1,63 @@
+/* Tablas, formularios, botones y acciones reutilizables. */
+
+.cart-items {
+    flex: 1 1 auto;
+    min-height: 120px;
+}
+
+.cart-total-box {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: auto;
+    background: rgba(20, 58, 82, 0.07);
+    border-radius: 20px;
+    padding: 18px;
+}
+
+body.theme-dark .cart-total-box {
+    background: rgba(127, 179, 209, 0.08);
+}
+
+.cart-total-box strong {
+    margin-top: 6px;
+    display: block;
+    font-size: 1.5rem;
+}
+
+.sticky-action {
+    margin-top: 8px;
+}
+
+.table-wrap {
+    overflow: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+.data-table th,
+.data-table td {
+    text-align: left;
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(38, 25, 15, 0.08);
+}
+
+body.theme-dark .data-table th,
+body.theme-dark .data-table td {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.data-table th {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.data-table td.actions-cell {
+    width: 1%;
+    white-space: nowrap;
+}
+

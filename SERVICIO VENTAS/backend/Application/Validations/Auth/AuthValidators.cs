@@ -11,6 +11,6 @@ public class LoginDtoValidator : AbstractValidator<LoginDto>
             .NotEmpty().WithMessage("El nombre de usuario es obligatorio.");
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("La password es obligatoria.");
+            .NotEmpty().WithMessage("La contraseña es obligatoria.");
     }
 }

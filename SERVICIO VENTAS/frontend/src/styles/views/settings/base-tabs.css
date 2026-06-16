@@ -1,0 +1,96 @@
+/* Configuracion, ticket y horarios de atencion. */
+
+.settings-page {
+    display: grid;
+    gap: 12px;
+}
+
+.settings-footer {
+    padding: 10px 24px 4px;
+    text-align: center;
+}
+
+.settings-footer p {
+    margin: 0;
+    color: rgba(51, 65, 85, 0.56);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+body.theme-dark .settings-footer p {
+    color: rgba(203, 213, 225, 0.58);
+}
+
+.app-shell.config-active .app-footer {
+    display: none;
+}
+
+.settings-head h3 {
+    margin: 0 0 5px;
+    font-size: 1.7rem;
+    color: #111827;
+}
+
+.settings-head p {
+    margin: 0;
+    color: #475569;
+}
+
+body.theme-dark .settings-head h3 {
+    color: #f9fafb;
+}
+
+body.theme-dark .settings-head p {
+    color: #cbd5e1;
+}
+
+.settings-tabs {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid #d8dee9;
+}
+
+.settings-tabs button {
+    min-height: 38px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: #111827;
+    font-weight: 700;
+}
+
+.settings-tabs button.active {
+    border-bottom-color: var(--brand);
+    color: var(--brand);
+}
+
+body.theme-dark .settings-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark .settings-tabs button {
+    color: #cbd5e1;
+}
+
+body.theme-dark .settings-tabs button.active {
+    color: #ffb4b4;
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.9fr);
+    gap: 10px 16px;
+}
+
+.settings-form {
+    display: grid;
+    gap: 16px;
+}
+
+.business-settings-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.8fr);
+    gap: 10px 16px;
+    align-items: start;
+}
+

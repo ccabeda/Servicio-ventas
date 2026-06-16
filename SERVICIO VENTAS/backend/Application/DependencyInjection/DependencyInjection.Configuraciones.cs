@@ -13,6 +13,14 @@ public static partial class DependencyInjection
         services.AddScoped<IDeleteConfiguracionNegocioHandler, DeleteConfiguracionNegocioHandler>();
         services.AddScoped<IGetConfiguracionesNegocioHandler, GetConfiguracionesNegocioHandler>();
         services.AddScoped<IGetConfiguracionNegocioByIdHandler, GetConfiguracionNegocioByIdHandler>();
+        services.AddScoped<IGetConfiguracionTicketPrincipalHandler, GetConfiguracionTicketPrincipalHandler>();
+        services.AddScoped<IUpdateConfiguracionTicketHandler, UpdateConfiguracionTicketHandler>();
+        services.AddScoped<ICreateImpresoraHandler, CreateImpresoraHandler>();
+        services.AddScoped<IUpdateImpresoraHandler, UpdateImpresoraHandler>();
+        services.AddScoped<IDeleteImpresoraHandler, DeleteImpresoraHandler>();
+        services.AddScoped<IGetImpresorasHandler, GetImpresorasHandler>();
+        services.AddScoped<IGetImpresoraByIdHandler, GetImpresoraByIdHandler>();
+        services.AddScoped<IPrintTicketPruebaImpresoraHandler, PrintTicketPruebaImpresoraHandler>();
         return services;
     }
 }

@@ -1,0 +1,211 @@
+.field {
+    display: grid;
+    gap: 8px;
+}
+
+.field span {
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+
+.field-error {
+    min-height: 0;
+    color: var(--danger);
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.field-error:empty {
+    display: none;
+}
+
+.auth-form .field > span:first-child {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+body.theme-dark .auth-form .field > span:first-child {
+    color: #f9fafb;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    appearance: none;
+    border: 1px solid #d8dee8;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 14px 15px;
+    color: #09253f;
+    font-weight: 800;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+body.theme-dark .field input,
+body.theme-dark .field select,
+body.theme-dark .field textarea {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: #10131a;
+    color: #f9fafb;
+}
+
+.auth-input-wrap {
+    position: relative;
+    display: block;
+}
+
+.auth-input-wrap input {
+    padding-left: 50px;
+}
+
+.auth-input-wrap input[id="loginPassword"] {
+    padding-right: 68px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    width: 19px;
+    height: 19px;
+    transform: translateY(-50%);
+    color: #6b7280;
+    z-index: 1;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    min-width: 48px;
+    height: 30px;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 9px;
+    background: rgba(17, 24, 39, 0.04);
+    color: #4b5563;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+body.theme-dark .password-toggle {
+    color: #cbd5e1;
+}
+
+.auth-remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #111827;
+    font-size: 0.94rem;
+}
+
+body.theme-dark .auth-remember {
+    color: #f9fafb;
+}
+
+.auth-remember input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--brand);
+}
+
+.field select {
+    background:
+        linear-gradient(45deg, transparent 50%, #64748b 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, #64748b 50%, transparent 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
+        #f8fafc;
+    padding-right: 42px;
+}
+
+.field select option {
+    color: #09253f;
+    background: #ffffff;
+}
+
+body.theme-dark .field select {
+    background:
+        linear-gradient(45deg, transparent 50%, #cbd5e1 50%) calc(100% - 18px) 50% / 6px 6px no-repeat,
+        linear-gradient(135deg, #cbd5e1 50%, transparent 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
+        #10131a;
+}
+
+body.theme-dark .field select option {
+    color: #f9fafb;
+    background: #151922;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: none;
+    border-color: rgba(var(--brand-rgb), 0.46);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.1);
+}
+
+body.theme-dark .field input:focus,
+body.theme-dark .field select:focus,
+body.theme-dark .field textarea:focus {
+    border-color: rgba(var(--brand-rgb), 0.48);
+    background-color: #151922;
+}
+
+.color-field input[type="color"] {
+    width: 54px;
+    height: 54px;
+    padding: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.color-field input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-field input[type="color"]::-webkit-color-swatch {
+    border: 0;
+    border-radius: 50%;
+}
+
+.color-field input[type="color"]::-moz-color-swatch {
+    border: 0;
+    border-radius: 50%;
+}
+
+.grow {
+    flex: 1 1 auto;
+}
+
+.stack-form {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+body.theme-dark .stack-form {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.check-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 54px;
+}
+
+.check-field input {
+    width: 18px;
+    height: 18px;
+}
+
