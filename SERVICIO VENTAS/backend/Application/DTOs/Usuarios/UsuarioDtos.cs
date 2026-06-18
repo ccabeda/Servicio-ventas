@@ -15,7 +15,7 @@ public class UsuarioDto
 public class CreateUsuarioDto
 {
     public string NombreUsuario { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    public string? Password { get; set; }
     public RolUsuario Rol { get; set; } = RolUsuario.Cajero;
     public bool Activo { get; set; } = true;
     public bool DebeCambiarPassword { get; set; } = true;

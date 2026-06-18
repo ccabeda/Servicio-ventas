@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServicioVentas.API.Extensions;
 using ServicioVentas.Application.DTOs.Configuraciones;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.Security;
@@ -16,7 +17,8 @@ public class ConfiguracionesNegocioController(
     IUpdateConfiguracionNegocioHandler updateHandler,
     IDeleteConfiguracionNegocioHandler deleteHandler,
     IGetConfiguracionesNegocioHandler getAllHandler,
-    IGetConfiguracionNegocioByIdHandler getByIdHandler) : ControllerBase
+    IGetConfiguracionNegocioByIdHandler getByIdHandler,
+    IUploadConfiguracionNegocioLogoHandler uploadLogoHandler) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<ConfiguracionNegocioDto>>> GetAll() => Ok(await getAllHandler.Handle(new GetConfiguracionesNegocioQuery()));
@@ -40,6 +42,19 @@ public class ConfiguracionesNegocioController(
     public async Task<ActionResult<ConfiguracionNegocioDto>> Update(int id, [FromBody] UpdateConfiguracionNegocioDto request)
     {
         return Ok(await updateHandler.Handle(new UpdateConfiguracionNegocioCommand { Id = id, Configuracion = request }));
+    }
+
+    [Authorize(Policy = PermisosSistema.ConfiguracionGestionar)]
+    [HttpPost("{id:int}/logo")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    public async Task<ActionResult<ConfiguracionNegocioDto>> UploadLogo(int id, [FromForm] IFormFile? archivo)
+    {
+        return Ok(await uploadLogoHandler.Handle(new UploadConfiguracionNegocioLogoCommand
+        {
+            Id = id,
+            Archivo = archivo.ToApplicationFile(),
+            CancellationToken = HttpContext.RequestAborted
+        }));
     }
 
     [Authorize(Policy = PermisosSistema.ConfiguracionGestionar)]

@@ -141,7 +141,8 @@ public class PrintTicketPruebaImpresoraHandler(
 
         printerSystem.PrintTestTicket(impresora.NombreSistema, command.Request with
         {
-            AnchoMm = command.Request.AnchoMm > 0 ? command.Request.AnchoMm : impresora.AnchoPapelMm
+            AnchoMm = command.Request.AnchoMm > 0 ? command.Request.AnchoMm : impresora.AnchoPapelMm,
+            CorteAutomatico = command.Request.CorteAutomatico && impresora.CorteAutomatico
         });
     }
 }

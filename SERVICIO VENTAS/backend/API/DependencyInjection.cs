@@ -55,7 +55,11 @@ public static class DependencyInjection
         services.AddFluentValidationAutoValidation();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ICurrentUserContext, CurrentUserService>();
         services.AddScoped<IPrinterSystemService, WindowsPrinterSystemService>();
+        services.AddScoped<ILogoStorageService, LogoStorageService>();
+        services.AddScoped<IRespaldoService, RespaldoService>();
+        services.AddHostedService<RespaldoAutomaticoHostedService>();
 
         return services;
     }
@@ -69,6 +73,7 @@ public static class DependencyInjection
         }
 
         app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseStaticFiles();
         app.UseCors("LocalNetworkPolicy");
         app.UseAuthentication();
         app.UseAuthorization();

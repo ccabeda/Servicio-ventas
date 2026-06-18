@@ -23,6 +23,11 @@ public class ConfiguracionTicketConfiguration : IEntityTypeConfiguration<Configu
         entity.Property(x => x.ImprimirFechaHoraTicket).HasDefaultValue(true);
         entity.Property(x => x.ImprimirCajeroTicket).HasDefaultValue(true);
         entity.Property(x => x.ImprimirNumeroTicket).HasDefaultValue(true);
+        entity.Property(x => x.ImprimirMedioPagoTicket).HasDefaultValue(true);
+        entity.Property(x => x.ImprimirSubtotalTotalTicket).HasDefaultValue(true);
+        entity.Property(x => x.ImprimirDescuentoRecargoTicket).HasDefaultValue(true);
+        entity.Property(x => x.ImprimirClienteTicket).HasDefaultValue(true);
+        entity.Property(x => x.ImprimirMensajeCierreTicket).HasDefaultValue(true);
         entity.Property(x => x.CorteAutomatico).HasDefaultValue(true);
 
         entity.HasOne(x => x.Impresora)

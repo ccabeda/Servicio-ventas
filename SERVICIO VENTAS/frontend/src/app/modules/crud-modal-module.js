@@ -39,9 +39,14 @@ export const crudModalMethods = {
     };
 
     this.els.modalRoot.classList.remove("hidden");
+    this.enhanceCustomSelects?.(this.els.modalForm);
   },
 
   closeModal() {
+    if (this.passwordChangeRequired) {
+      return;
+    }
+
     if (this.pendingQuantityResolve) {
       const resolve = this.pendingQuantityResolve;
       this.pendingQuantityResolve = null;
@@ -50,6 +55,7 @@ export const crudModalMethods = {
     this.els.modalForm.onsubmit = null;
     this.els.modalForm.noValidate = false;
     this.els.modalForm.innerHTML = "";
+    this.els.modalCloseButton.classList.remove("hidden");
     this.els.modalRoot.querySelector(".modal-card")?.classList.remove("marcas-manager-modal", "stock-modal");
     this.els.modalRoot.classList.add("hidden");
     this.productoDraft = null;
@@ -226,10 +232,15 @@ export const crudModalMethods = {
         fieldsHtml: `
           <div class="modal-grid-2">
             ${fieldHtml("Nombre de usuario", "NombreUsuario", usuario?.NombreUsuario, true)}
-            ${fieldHtml(isEdit ? "Nueva contraseña" : "Contraseña", "Password", "", !isEdit, "password")}
+            ${isEdit ? fieldHtml("Nueva contraseña", "Password", "", false, "password") : `
+              <div class="password-required-panel">
+                <strong>Contraseña inicial: 1234</strong>
+                <p>El usuario deberá cambiarla al ingresar por primera vez.</p>
+              </div>
+            `}
             ${selectHtml("Rol", "Rol", ROLES, usuario?.Rol ?? 2, true)}
             ${checkboxHtml("Activo", "Activo", usuario ? usuario.Activo : true)}
-            ${checkboxHtml("Debe cambiar contraseña", "DebeCambiarPassword", usuario ? usuario.DebeCambiarPassword : true)}
+            ${isEdit ? checkboxHtml("Debe cambiar contraseña", "DebeCambiarPassword", usuario ? usuario.DebeCambiarPassword : false) : ""}
           </div>
         `,
         payload: form => ({
@@ -237,7 +248,7 @@ export const crudModalMethods = {
           Password: normalizeOptional(form.get("Password")),
           Rol: Number(form.get("Rol") || 2),
           Activo: form.get("Activo") === "on",
-          DebeCambiarPassword: form.get("DebeCambiarPassword") === "on"
+          DebeCambiarPassword: isEdit ? form.get("DebeCambiarPassword") === "on" : true
         }),
         refresh: async () => {
           await this.loadUsuarios();
@@ -277,6 +288,12 @@ export const crudModalMethods = {
 
   async submitModalForm(context, formData) {
     const submitButton = this.els.modalForm.querySelector("button[type='submit']");
+    const missingFields = this.getMissingModalFields();
+    if (missingFields.length) {
+      this.toast(`Completá ${missingFields.join(" y ")}.`, "error");
+      return;
+    }
+
     setButtonLoading(submitButton, true, "Guardando...");
 
     try {
@@ -293,6 +310,13 @@ export const crudModalMethods = {
     } finally {
       setButtonLoading(submitButton, false, context.submitLabel);
     }
+  },
+
+  getMissingModalFields() {
+    return Array.from(this.els.modalForm.querySelectorAll("input[required], select[required], textarea[required]"))
+      .filter(control => !String(control.value || "").trim())
+      .map(control => control.closest(".field")?.querySelector("span")?.textContent?.trim() || control.name)
+      .filter(Boolean);
   },
 
   async deleteEntity(entity, id) {

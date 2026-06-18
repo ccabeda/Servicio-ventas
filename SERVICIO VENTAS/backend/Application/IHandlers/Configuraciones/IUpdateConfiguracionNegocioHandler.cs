@@ -7,3 +7,8 @@ public interface IUpdateConfiguracionNegocioHandler
 {
     Task<ConfiguracionNegocioDto> Handle(UpdateConfiguracionNegocioCommand command);
 }
+
+public interface IUploadConfiguracionNegocioLogoHandler
+{
+    Task<ConfiguracionNegocioDto> Handle(UploadConfiguracionNegocioLogoCommand command);
+}

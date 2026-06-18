@@ -19,6 +19,14 @@
     flex: 1;
 }
 
+.ticket-logo {
+    display: block;
+    max-width: 120px;
+    max-height: 60px;
+    object-fit: contain;
+    margin: 0 auto 8px;
+}
+
 .ticket-header-main h4 {
     margin: 0 0 8px;
     font-size: 1.4rem;
@@ -198,6 +206,26 @@ body.hide-help-messages .home-tip {
     line-height: 1.35;
 }
 
+.password-required-panel {
+    grid-column: 1 / -1;
+    padding: 14px 16px;
+    border: 1px solid rgba(var(--brand-rgb), 0.14);
+    border-radius: 10px;
+    background: rgba(var(--brand-rgb), 0.08);
+    color: #2b1111;
+}
+
+.password-required-panel strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #111827;
+}
+
+.password-required-panel p {
+    margin: 0;
+    line-height: 1.45;
+}
+
 .modal-toolbar {
     display: flex;
     justify-content: flex-end;
@@ -236,3 +264,10 @@ body.theme-dark .context-menu button:hover {
     color: #ffb4b4;
 }
 
+body.theme-dark .password-required-panel {
+    color: #f8fafc;
+}
+
+body.theme-dark .password-required-panel strong {
+    color: #f8fafc;
+}

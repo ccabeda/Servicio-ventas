@@ -9,6 +9,8 @@ public static partial class DependencyInjection
     private static IServiceCollection AddAuthHandlers(this IServiceCollection services)
     {
         services.AddScoped<ILoginHandler, LoginHandler>();
+        services.AddScoped<IGetCurrentUserHandler, GetCurrentUserHandler>();
+        services.AddScoped<ICambiarPasswordHandler, CambiarPasswordHandler>();
         return services;
     }
 }

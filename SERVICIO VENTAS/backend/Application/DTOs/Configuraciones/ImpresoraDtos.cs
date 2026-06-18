@@ -46,4 +46,5 @@ public record TicketPruebaImpresoraRequest(
     int AnchoMm = 80,
     bool ImprimirFechaHora = true,
     bool ImprimirCajero = true,
-    bool ImprimirNumero = true);
+    bool ImprimirNumero = true,
+    bool CorteAutomatico = true);

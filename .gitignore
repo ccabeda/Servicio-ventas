@@ -21,6 +21,10 @@ Thumbs.db
 
 # Local environment
 appsettings.Local.json
+SERVICIO VENTAS/backend/API/App_Data/backup-settings.json
+SERVICIO VENTAS/backend/API/Documentos/
+SERVICIO VENTAS/backend/API/wwwroot/backups/
+SERVICIO VENTAS/backend/API/wwwroot/uploads/
 
 # Node
 node_modules/

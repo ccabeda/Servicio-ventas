@@ -1,5 +1,8 @@
 @import "./settings/base-tabs.css";
 @import "./settings/ticket.css";
+@import "./settings/printers.css";
+@import "./settings/users.css";
+@import "./settings/backup.css";
 @import "./settings/business.css";
 @import "./settings/preferences.css";
 

@@ -9,6 +9,7 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
 {
     private const int PrinterEnumLocal = 0x00000002;
     private const int PrinterEnumConnections = 0x00000004;
+    private static readonly byte[] CutPaperCommand = [0x1D, 0x56, 0x00];
 
     public List<ImpresoraDetectadaDto> GetDetectedPrinters()
     {
@@ -47,7 +48,7 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
             throw new InvalidOperationException("No hay una impresora predeterminada configurada en Windows.");
 
         EnsureTicketPrinterIsAvailable(resolvedPrinterName);
-        PrintRaw(resolvedPrinterName, BuildTestTicket(request, clock.LocalNow));
+        PrintRaw(resolvedPrinterName, BuildRawTicketBytes(BuildTestTicket(request, clock.LocalNow), request.CorteAutomatico));
     }
 
     private static string BuildTestTicket(TicketPruebaImpresoraRequest request, DateTime now)
@@ -147,7 +148,18 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
             && !printerName.Contains("XPS", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void PrintRaw(string printerName, string content)
+    private static byte[] BuildRawTicketBytes(string content, bool cutPaper)
+    {
+        var contentBytes = Encoding.UTF8.GetBytes(content);
+        if (!cutPaper)
+        {
+            return contentBytes;
+        }
+
+        return [.. contentBytes, .. CutPaperCommand];
+    }
+
+    private static void PrintRaw(string printerName, byte[] bytes)
     {
         if (!OpenPrinter(printerName, out var printerHandle, IntPtr.Zero))
         {
@@ -174,7 +186,6 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
                     throw new InvalidOperationException("No se pudo iniciar la pagina de impresion.");
                 }
 
-                var bytes = Encoding.UTF8.GetBytes(content);
                 if (!WritePrinter(printerHandle, bytes, bytes.Length, out var written) || written != bytes.Length)
                 {
                     throw new InvalidOperationException("No se pudo enviar el ticket completo a la impresora.");

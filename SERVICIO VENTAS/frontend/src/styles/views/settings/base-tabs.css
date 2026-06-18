@@ -2,11 +2,25 @@
 
 .settings-page {
     display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
     gap: 12px;
+    min-height: calc(100vh - 126px);
+}
+
+#configuracionView:not(.hidden) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#configuracionView:not(.hidden) .settings-page {
+    flex: 1 1 auto;
+    width: 100%;
 }
 
 .settings-footer {
-    padding: 10px 24px 4px;
+    align-self: end;
+    padding: 10px 24px 12px;
     text-align: center;
 }
 

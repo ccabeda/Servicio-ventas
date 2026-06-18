@@ -11,6 +11,7 @@ public static partial class DependencyInjection
         services.AddScoped<ICreateConfiguracionNegocioHandler, CreateConfiguracionNegocioHandler>();
         services.AddScoped<IUpdateConfiguracionNegocioHandler, UpdateConfiguracionNegocioHandler>();
         services.AddScoped<IDeleteConfiguracionNegocioHandler, DeleteConfiguracionNegocioHandler>();
+        services.AddScoped<IUploadConfiguracionNegocioLogoHandler, UploadConfiguracionNegocioLogoHandler>();
         services.AddScoped<IGetConfiguracionesNegocioHandler, GetConfiguracionesNegocioHandler>();
         services.AddScoped<IGetConfiguracionNegocioByIdHandler, GetConfiguracionNegocioByIdHandler>();
         services.AddScoped<IGetConfiguracionTicketPrincipalHandler, GetConfiguracionTicketPrincipalHandler>();

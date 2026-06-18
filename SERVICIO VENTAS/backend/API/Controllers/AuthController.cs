@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ServicioVentas.API.Services;
 using ServicioVentas.Application.DTOs.Auth;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.UseCases.Auth.Commands;
+using ServicioVentas.Application.UseCases.Auth.Queries;
 
 namespace ServicioVentas.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(ILoginHandler loginHandler, ICurrentUserService currentUser) : ControllerBase
+public class AuthController(
+    ILoginHandler loginHandler,
+    IGetCurrentUserHandler getCurrentUserHandler,
+    ICambiarPasswordHandler cambiarPasswordHandler) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("login")]
@@ -21,14 +24,15 @@ public class AuthController(ILoginHandler loginHandler, ICurrentUserService curr
 
     [Authorize]
     [HttpGet("me")]
-    public ActionResult<CurrentUserDto> Me()
+    public async Task<ActionResult<CurrentUserDto>> Me()
     {
-        return Ok(new CurrentUserDto
-        {
-            UsuarioId = currentUser.UserId,
-            NombreUsuario = currentUser.UserName,
-            Rol = currentUser.Role,
-            Permisos = currentUser.Permissions.ToList()
-        });
+        return Ok(await getCurrentUserHandler.Handle(new GetCurrentUserQuery()));
+    }
+
+    [Authorize]
+    [HttpPost("cambiar-password")]
+    public async Task<ActionResult<CurrentUserDto>> CambiarPassword([FromBody] CambiarPasswordDto request)
+    {
+        return Ok(await cambiarPasswordHandler.Handle(new CambiarPasswordCommand { Request = request }));
     }
 }

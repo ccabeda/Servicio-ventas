@@ -131,6 +131,8 @@ export const peopleSettingsMethods = {
       return;
     }
 
+    this.renderUsuariosSummary();
+
     if (!this.els.usuariosTableBody.children.length) {
       this.els.usuariosTableBody.innerHTML = rowSkeleton(6, 4);
     }
@@ -158,18 +160,30 @@ export const peopleSettingsMethods = {
     }
 
     const usuarios = this.state.usuariosPage.Items || [];
+    this.renderUsuariosSummary();
     this.els.newUsuarioButton.classList.remove("hidden");
     this.els.usuariosTableBody.innerHTML = usuarios.length
       ? usuarios.map(usuario => `
         <tr>
-          <td data-label="Usuario">${escapeHtml(usuario.NombreUsuario)}</td>
-          <td data-label="Rol">${formatRol(usuario.Rol)}</td>
-          <td data-label="Activo">${usuario.Activo ? "Sí" : "No"}</td>
-          <td data-label="Cambio de clave">${usuario.DebeCambiarPassword ? "Sí" : "No"}</td>
-          <td data-label="Creación">${formatDateTime(usuario.FechaCreacion)}</td>
-          <td data-label="Acciones" class="actions-cell">
-            <button class="btn btn-secondary" type="button" data-action="edit-usuario" data-id="${usuario.Id}">Editar</button>
-            <button class="btn btn-danger" type="button" data-action="delete-usuario" data-id="${usuario.Id}">Eliminar</button>
+          <td data-label="Usuario">
+            <div class="user-name-cell">
+              <span class="user-avatar">${escapeHtml(String(usuario.NombreUsuario || "?").slice(0, 1).toUpperCase())}</span>
+              <div>
+                <strong>${escapeHtml(usuario.NombreUsuario)}</strong>
+              </div>
+            </div>
+          </td>
+          <td data-label="Rol"><span class="user-role-badge">${formatRol(usuario.Rol)}</span></td>
+          <td data-label="Estado"><span class="user-status-badge ${usuario.Activo ? "is-active" : "is-inactive"}">${usuario.Activo ? "Activo" : "Inactivo"}</span></td>
+          <td data-label="Contraseña">${usuario.DebeCambiarPassword ? "Cambio requerido" : "Sin cambio pendiente"}</td>
+          <td data-label="Creación" class="user-created-cell">${formatDateTime(usuario.FechaCreacion)}</td>
+          <td data-label="Acciones" class="actions-cell users-actions-cell">
+            <button class="user-action-btn" type="button" data-action="edit-usuario" data-id="${usuario.Id}" aria-label="Editar usuario" title="Editar usuario">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            </button>
+            <button class="user-action-btn is-danger" type="button" data-action="delete-usuario" data-id="${usuario.Id}" aria-label="Eliminar usuario" title="Eliminar usuario">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>
+            </button>
           </td>
         </tr>
       `).join("")
@@ -189,6 +203,21 @@ export const peopleSettingsMethods = {
       }
     });
     this.bindCrudTableActions("usuario");
+  },
+
+  renderUsuariosSummary() {
+    const usuarios = Array.isArray(this.state.usuarios) ? this.state.usuarios : [];
+    const total = this.state.usuariosPage?.TotalItems || usuarios.length || 0;
+    const active = usuarios.filter(usuario => usuario.Activo !== false).length;
+    const admins = usuarios.filter(usuario => formatRol(usuario.Rol) === "Admin").length;
+
+    const totalEl = document.getElementById("usuariosSummaryTotal");
+    const activeEl = document.getElementById("usuariosSummaryActive");
+    const adminsEl = document.getElementById("usuariosSummaryAdmins");
+
+    if (totalEl) totalEl.textContent = String(total);
+    if (activeEl) activeEl.textContent = String(active);
+    if (adminsEl) adminsEl.textContent = String(admins);
   },
 
   async renderMediosPagoTable() {
@@ -292,6 +321,7 @@ export const peopleSettingsMethods = {
     this.applyTicketConfigToForm(form, ticketConfig);
     this.updateBusinessSummary(form);
     this.syncTicketSettings(form);
+    this.renderImpresorasSettingsPanel();
     return;
     }
 
@@ -325,6 +355,7 @@ export const peopleSettingsMethods = {
     this.bindTicketSettings(form);
     this.updateBusinessSummary(form);
     this.syncTicketSettings(form);
+    this.renderImpresorasSettingsPanel();
   },
 
   applyTicketConfigToForm(form, ticketConfig = {}) {
@@ -392,14 +423,26 @@ export const peopleSettingsMethods = {
         title: "Ticket",
         description: "Personaliza el comprobante que se entrega al finalizar cada venta."
       },
+      impresoras: {
+        title: "Configuración de impresoras",
+        description: "Administra y configura las impresoras de tickets y documentos."
+      },
+      usuarios: {
+        title: "Usuarios",
+        description: "Gestiona accesos, roles y usuarios autorizados del punto de venta."
+      },
       preferencias: {
         title: "Preferencias",
         description: "Personaliza el comportamiento general del sistema segun las necesidades de tu negocio."
+      },
+      respaldo: {
+        title: "Respaldo",
+        description: "Administra copias de seguridad y restauración de datos del sistema."
       }
     };
     const selected = meta[section] ? section : "negocio";
     this.currentSettingsSection = selected;
-    this.els.appShell?.classList.remove("settings-negocio", "settings-ticket", "settings-preferencias");
+    this.els.appShell?.classList.remove("settings-negocio", "settings-ticket", "settings-impresoras", "settings-usuarios", "settings-preferencias", "settings-respaldo");
     this.els.appShell?.classList.add(`settings-${selected}`);
 
     document.querySelectorAll("[data-settings-tab]").forEach(button => {
@@ -414,6 +457,818 @@ export const peopleSettingsMethods = {
     const description = document.getElementById("settingsSectionDescription");
     if (title) title.textContent = meta[selected].title;
     if (description) description.textContent = meta[selected].description;
+
+    if (selected === "impresoras") {
+      this.renderImpresorasSettingsPanel();
+    }
+
+    if (selected === "usuarios") {
+      this.renderUsuariosTable();
+    }
+
+    if (selected === "respaldo") {
+      this.bindBackupSettingsActions();
+      this.loadBackupConfiguration();
+      this.loadBackupHistory();
+    }
+  },
+
+  bindBackupSettingsActions() {
+    document.querySelectorAll("[data-backup-action]").forEach(button => {
+      if (button.dataset.backupBound === "true") return;
+
+      button.addEventListener("click", async () => {
+        const action = button.dataset.backupAction;
+        if (action === "create") {
+          this.openCreateBackupModal(button);
+          return;
+        }
+
+        if (action === "restore") {
+          document.getElementById("backupRestoreInput")?.click();
+          return;
+        }
+
+        if (action === "folder") {
+          this.openBackupLocationModal();
+          return;
+        }
+
+        this.toast("Esta opción de respaldo queda preparada para la próxima etapa.", "info");
+      });
+      button.dataset.backupBound = "true";
+    });
+
+    const restoreInput = document.getElementById("backupRestoreInput");
+    if (restoreInput && restoreInput.dataset.backupRestoreBound !== "true") {
+      restoreInput.addEventListener("change", event => this.handleRestoreBackupFile(event));
+      restoreInput.dataset.backupRestoreBound = "true";
+    }
+
+    this.renderBackupTimeOptions();
+    this.enhanceCustomSelects?.(document.querySelector('[data-settings-panel="respaldo"]') || document);
+
+    const savePlanButton = document.getElementById("backupSavePlanButton");
+    if (savePlanButton && savePlanButton.dataset.backupPlanBound !== "true") {
+      savePlanButton.addEventListener("click", async () => {
+        await this.saveBackupPlan(savePlanButton);
+      });
+      savePlanButton.dataset.backupPlanBound = "true";
+    }
+
+    document.querySelectorAll(".backup-frequency-option input").forEach(input => {
+      if (input.dataset.backupFrequencyBound === "true") return;
+
+      input.addEventListener("change", () => {
+        this.syncBackupPlanControls();
+      });
+      input.dataset.backupFrequencyBound = "true";
+    });
+
+    ["backupPlanTime", "backupPlanWeekday", "backupPlanMonthday"].forEach(id => {
+      const input = document.getElementById(id);
+      if (!input || input.dataset.backupPlanFieldBound === "true") return;
+      input.addEventListener("change", () => this.syncBackupPlanControls());
+      input.dataset.backupPlanFieldBound = "true";
+    });
+  },
+
+  renderBackupTimeOptions() {
+    const select = document.getElementById("backupPlanTime");
+    if (!select || select.dataset.backupTimeOptionsReady === "true") return;
+
+    const options = [];
+    for (let minutes = 0; minutes < 24 * 60; minutes += 30) {
+      const hours = String(Math.floor(minutes / 60)).padStart(2, "0");
+      const mins = String(minutes % 60).padStart(2, "0");
+      const value = `${hours}:${mins}`;
+      options.push(`<option value="${value}" ${value === "03:00" ? "selected" : ""}>${value}</option>`);
+    }
+
+    select.innerHTML = options.join("");
+    select.dataset.backupTimeOptionsReady = "true";
+  },
+
+  openCreateBackupModal(triggerButton) {
+    this.els.modalEyebrow.textContent = "Respaldo";
+    this.els.modalTitle.textContent = "Crear respaldo";
+    this.els.modalForm.noValidate = true;
+    this.els.modalForm.innerHTML = `
+      <div class="backup-create-modal">
+        <label class="field">
+          <span>Nombre del respaldo</span>
+          <input id="backupCustomNameInput" name="Nombre" type="text" maxlength="60" placeholder="Ej: cierre de caja, antes de actualizar...">
+        </label>
+        <div class="password-required-panel">
+          <strong>Nombre opcional</strong>
+          <p>Si lo dejás vacío, se usará el nombre predeterminado del sistema. La fecha y hora se agregan siempre para identificar cada copia.</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" data-role="modal-cancel">Cancelar</button>
+        <button class="btn btn-secondary" type="button" data-backup-default-name>Usar predeterminado</button>
+        <button class="btn btn-primary" type="submit">Crear respaldo</button>
+      </div>
+    `;
+
+    this.els.modalForm.querySelector("[data-role='modal-cancel']").addEventListener("click", () => this.closeModal());
+    this.els.modalForm.querySelector("[data-backup-default-name]").addEventListener("click", async event => {
+      await this.handleCreateBackup(triggerButton, "", event.currentTarget);
+    });
+    this.els.modalForm.onsubmit = async event => {
+      event.preventDefault();
+      const name = this.els.modalForm.Nombre?.value?.trim() || "";
+      await this.handleCreateBackup(triggerButton, name, this.els.modalForm.querySelector("button[type='submit']"));
+    };
+
+    this.els.modalRoot.classList.remove("hidden");
+    this.els.modalForm.Nombre?.focus();
+  },
+
+  async handleCreateBackup(button, nombre = "", feedbackButton = button) {
+    button.disabled = true;
+    button.classList.add("is-loading");
+    button.setAttribute("aria-busy", "true");
+    setButtonLoading(feedbackButton, true, "Creando...");
+
+    try {
+      const backup = await this.api.request(API_ENDPOINTS.respaldosCrear, {
+        method: "POST",
+        body: JSON.stringify({ Nombre: nombre || null })
+      });
+      this.state.lastBackup = backup;
+      this.state.backupsPage = {
+        Items: [backup],
+        PageIndex: 1,
+        PageSize: 4,
+        TotalItems: 1,
+        TotalPages: 1
+      };
+      this.renderBackupHistory(this.state.backupsPage);
+      await this.loadBackupHistory(1);
+      this.toast("Respaldo creado correctamente.", "success");
+      this.closeModal();
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      button.disabled = false;
+      button.classList.remove("is-loading");
+      button.setAttribute("aria-busy", "false");
+      setButtonLoading(feedbackButton, false, feedbackButton?.dataset.backupDefaultName !== undefined ? "Usar predeterminado" : "Crear respaldo");
+    }
+  },
+
+  async loadBackupHistory(pageIndex = this.state.backupsPage?.PageIndex || 1) {
+    const requestId = (this.backupHistoryRequestId || 0) + 1;
+    this.backupHistoryRequestId = requestId;
+
+    try {
+      const params = new URLSearchParams({
+        pageIndex: String(pageIndex),
+        pageSize: "4"
+      });
+      const page = await this.api.request(`${API_ENDPOINTS.respaldosPaginado}?${params.toString()}`);
+      if (requestId !== this.backupHistoryRequestId) return;
+
+      this.state.backupsPage = page;
+      this.renderBackupHistory(this.state.backupsPage);
+    } catch (error) {
+      if (requestId !== this.backupHistoryRequestId) return;
+      this.toast(this.getErrorMessage(error), "error");
+    }
+  },
+
+  async loadBackupConfiguration() {
+    try {
+      const config = await this.api.request(API_ENDPOINTS.respaldosConfiguracion);
+      this.state.backupConfiguration = config;
+      this.renderBackupConfiguration(config);
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    }
+  },
+
+  renderBackupConfiguration(config = {}) {
+    const pathElement = document.getElementById("backupCurrentPath");
+    const historyPathElement = document.getElementById("backupHistoryCurrentPath");
+    const visiblePath = config.DirectorioVisible || config.Directorio || "Documentos\\CajaGo\\Respaldos";
+    const frequency = this.normalizeBackupFrequency(config.Frecuencia);
+    const time = config.Hora || "03:00";
+    const weekday = Number.isInteger(config.DiaSemana) ? config.DiaSemana : 1;
+    const monthday = Number.isInteger(config.DiaMes) ? config.DiaMes : 1;
+
+    if (pathElement) {
+      pathElement.textContent = visiblePath;
+      pathElement.title = visiblePath;
+    }
+
+    if (historyPathElement) {
+      historyPathElement.textContent = visiblePath;
+      historyPathElement.title = visiblePath;
+    }
+
+    document.querySelectorAll("input[name='BackupFrequency']").forEach(input => {
+      input.checked = input.value === frequency;
+    });
+
+    const timeInput = document.getElementById("backupPlanTime");
+    if (timeInput) {
+      if (![...timeInput.options].some(option => option.value === time)) {
+        const option = document.createElement("option");
+        option.value = time;
+        option.textContent = time;
+        timeInput.append(option);
+      }
+      timeInput.value = time;
+      this.syncCustomSelect?.(timeInput);
+    }
+
+    const weekdayInput = document.getElementById("backupPlanWeekday");
+    if (weekdayInput) {
+      weekdayInput.value = String(weekday);
+      this.syncCustomSelect?.(weekdayInput);
+    }
+
+    const monthdayInput = document.getElementById("backupPlanMonthday");
+    if (monthdayInput) {
+      monthdayInput.value = String(monthday);
+      this.syncCustomSelect?.(monthdayInput);
+    }
+
+    this.syncBackupPlanControls();
+  },
+
+  syncBackupPlanControls() {
+    const frequency = this.getSelectedBackupFrequency();
+    const time = document.getElementById("backupPlanTime")?.value || "03:00";
+    const weekday = Number(document.getElementById("backupPlanWeekday")?.value || 1);
+    const monthday = Number(document.getElementById("backupPlanMonthday")?.value || 1);
+    const weekdayField = document.getElementById("backupPlanWeekdayField");
+    const monthdayField = document.getElementById("backupPlanMonthdayField");
+    const currentPlan = document.getElementById("backupCurrentPlan");
+    const nextRun = document.getElementById("backupNextRun");
+    const savedConfig = this.state.backupConfiguration || {};
+    const savedFrequency = this.normalizeBackupFrequency(savedConfig.Frecuencia);
+    const savedTime = savedConfig.Hora || "03:00";
+    const savedWeekday = Number.isInteger(savedConfig.DiaSemana) ? savedConfig.DiaSemana : 1;
+    const savedMonthday = Number.isInteger(savedConfig.DiaMes) ? savedConfig.DiaMes : 1;
+    const isSavedPlan = savedFrequency === frequency
+      && savedTime === time
+      && savedWeekday === weekday
+      && savedMonthday === monthday;
+
+    document.querySelectorAll(".backup-frequency-option").forEach(option => {
+      option.classList.toggle("is-selected", option.querySelector("input")?.checked);
+    });
+
+    if (weekdayField) {
+      weekdayField.classList.toggle("is-muted", frequency !== "weekly");
+      weekdayField.classList.toggle("hidden", frequency !== "weekly");
+    }
+    if (monthdayField) {
+      monthdayField.classList.toggle("is-muted", frequency !== "monthly");
+      monthdayField.classList.toggle("hidden", frequency !== "monthly");
+    }
+
+    const label = this.formatBackupPlanLabel(frequency, time, weekday, monthday);
+    if (currentPlan) currentPlan.textContent = label;
+    if (nextRun) {
+      nextRun.textContent = isSavedPlan && savedConfig.ProximoRespaldo
+        ? formatDateTime(savedConfig.ProximoRespaldo)
+        : "Guardar plan";
+    }
+  },
+
+  getSelectedBackupFrequency() {
+    return this.normalizeBackupFrequency(document.querySelector("input[name='BackupFrequency']:checked")?.value);
+  },
+
+  normalizeBackupFrequency(frequency) {
+    return ["daily", "weekly", "monthly"].includes(frequency) ? frequency : "daily";
+  },
+
+  formatBackupPlanLabel(frequency, time, weekday, monthday = 1) {
+    const weekdayLabels = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    if (frequency === "monthly") return `Mensual · ${monthday === 0 ? "Último día" : `Día ${monthday}`} ${time}`;
+    if (frequency === "weekly") return `Semanal · ${weekdayLabels[weekday] || "Lunes"} ${time}`;
+    return `Diario · ${time}`;
+  },
+
+  async saveBackupPlan(button) {
+    const frequency = this.getSelectedBackupFrequency();
+    const time = document.getElementById("backupPlanTime")?.value || "03:00";
+    const weekday = Number(document.getElementById("backupPlanWeekday")?.value || 1);
+    const monthday = Number(document.getElementById("backupPlanMonthday")?.value || 1);
+
+    setButtonLoading(button, true, "Guardando...");
+    try {
+      const config = await this.api.request(API_ENDPOINTS.respaldosConfiguracion, {
+        method: "PUT",
+        body: JSON.stringify({
+          Frecuencia: frequency,
+          Hora: time,
+          DiaSemana: weekday,
+          DiaMes: monthday
+        })
+      });
+      this.state.backupConfiguration = config;
+      this.renderBackupConfiguration(config);
+      this.toast("Plan de respaldo guardado.", "success");
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      setButtonLoading(button, false, "Guardar plan");
+    }
+  },
+
+  openBackupLocationModal() {
+    const config = this.state.backupConfiguration || {};
+    const visiblePath = config.DirectorioVisible || config.Directorio || "Documentos\\CajaGo\\Respaldos";
+    this.els.modalEyebrow.textContent = "Respaldo";
+    this.els.modalTitle.textContent = "Ubicación de copias";
+    this.els.modalForm.noValidate = true;
+    this.els.modalForm.innerHTML = `
+      <div class="backup-location-modal">
+        <div class="backup-location-current">
+          <span>Ubicación recomendada</span>
+          <div class="backup-location-path-row">
+            <strong id="backupLocationModalPath">${escapeHtml(visiblePath)}</strong>
+            <button class="btn btn-secondary" type="button" data-backup-copy-path>Copiar ruta</button>
+          </div>
+        </div>
+        <div class="password-required-panel">
+          <strong>Importante</strong>
+          <p>La API guardará las copias en una carpeta estable dentro de Documentos. Más adelante, en la app de escritorio, podremos usar un selector real de carpetas.</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" data-role="modal-cancel">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Usar ubicación recomendada</button>
+      </div>
+    `;
+
+    this.els.modalForm.querySelector("[data-role='modal-cancel']").addEventListener("click", () => this.closeModal());
+    this.els.modalForm.querySelector("[data-backup-copy-path]").addEventListener("click", () => {
+      this.copyBackupPath(visiblePath);
+    });
+    this.els.modalForm.onsubmit = async event => {
+      event.preventDefault();
+      await this.saveBackupLocation();
+    };
+
+    this.els.modalRoot.classList.remove("hidden");
+  },
+
+  async copyBackupPath(path) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(path);
+      } else {
+        const input = document.createElement("textarea");
+        input.value = path;
+        input.setAttribute("readonly", "");
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+      }
+      this.toast("Ruta copiada.", "success");
+    } catch {
+      this.toast("No se pudo copiar la ruta.", "error");
+    }
+  },
+
+  async saveBackupLocation() {
+    const submitButton = this.els.modalForm.querySelector("button[type='submit']");
+    setButtonLoading(submitButton, true, "Guardando...");
+
+    try {
+      const config = await this.api.request(API_ENDPOINTS.respaldosConfiguracion, {
+        method: "PUT",
+        body: JSON.stringify({
+          Directorio: ""
+        })
+      });
+      this.state.backupConfiguration = config;
+      this.renderBackupConfiguration(config);
+      await this.loadBackupHistory(1);
+      this.toast("Ubicación de copias actualizada.", "success");
+      this.closeModal();
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      setButtonLoading(submitButton, false, "Usar ubicación recomendada");
+    }
+  },
+
+  async handleRestoreBackupFile(event) {
+    const input = event.currentTarget;
+    const file = input.files?.[0] || null;
+    input.value = "";
+
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".zip")) {
+      this.toast("Selecciona un archivo .zip de respaldo.", "error");
+      return;
+    }
+
+    const confirmed = await this.requestConfirmation({
+      eyebrow: "Restaurar respaldo",
+      title: "Restaurar datos del sistema",
+      message: `Se reemplazarán los datos actuales con el respaldo "${file.name}". Esta acción no se puede deshacer.`,
+      confirmLabel: "Restaurar"
+    });
+
+    if (!confirmed) return;
+
+    const formData = new FormData();
+    formData.append("archivo", file);
+
+    this.setAppLoading(true, "Restaurando respaldo");
+    try {
+      const restored = await this.api.request(API_ENDPOINTS.respaldosRestaurar, {
+        method: "POST",
+        body: formData
+      });
+      this.toast(restored.Mensaje || "Respaldo restaurado correctamente. Inicia sesión nuevamente.", "success");
+      this.logout(false);
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      this.setAppLoading(false);
+    }
+  },
+
+  renderBackupHistory(page = this.createEmptyPage(4)) {
+    const list = Array.isArray(page.Items) ? page.Items : [];
+    const latest = list[0] || null;
+    const title = document.getElementById("backupStatusTitle");
+    const text = document.getElementById("backupStatusText");
+    const badge = document.getElementById("backupStatusBadge");
+    const lastDate = document.getElementById("backupLastDate");
+    const lastFile = document.getElementById("backupLastFile");
+    const history = document.getElementById("backupHistoryList");
+    const pagination = document.getElementById("backupHistoryPagination");
+
+    if (!latest) {
+      if (title) title.textContent = "Sin respaldo reciente";
+      if (text) text.textContent = "Cuando generes una copia, acá vas a ver la última copia creada, su tamaño y el resultado del proceso.";
+      if (badge) {
+        badge.textContent = "Pendiente";
+        badge.classList.add("is-pending");
+        badge.classList.remove("is-success");
+      }
+      if (lastDate) lastDate.textContent = "Sin datos";
+      if (lastFile) lastFile.textContent = "Sin datos";
+      if (history) {
+        history.className = "backup-history-empty";
+        history.innerHTML = `
+          <strong>No hay respaldos generados</strong>
+          <span>Usá “Crear respaldo ahora” para generar la primera copia.</span>
+        `;
+      }
+      if (pagination) pagination.innerHTML = "";
+      return;
+    }
+
+    const formattedDate = formatDateTime(latest.Fecha);
+    const size = this.formatFileSize(latest.TamanoBytes);
+
+    if (title) title.textContent = "Respaldo creado";
+    if (text) text.textContent = `${latest.NombreArchivo} · ${size}`;
+    if (badge) {
+      badge.textContent = "Correcto";
+      badge.classList.remove("is-pending");
+      badge.classList.add("is-success");
+    }
+    if (lastDate) lastDate.textContent = formattedDate;
+    if (lastFile) lastFile.textContent = latest.NombreArchivo;
+    if (history) {
+      history.className = "backup-history-list";
+      history.innerHTML = list.map(backup => `
+        <div class="backup-history-item">
+          <div>
+            <strong>${escapeHtml(backup.NombreArchivo)}</strong>
+            <span>${escapeHtml(formatDateTime(backup.Fecha))} · ${escapeHtml(this.formatFileSize(backup.TamanoBytes))}</span>
+          </div>
+          <a class="btn btn-secondary" href="${escapeHtml(backup.UrlDescarga)}" download>
+            Descargar
+          </a>
+        </div>
+      `).join("");
+    }
+
+    this.renderPagination({
+      page,
+      container: pagination,
+      label: "respaldos",
+      pageSizeFallback: 4,
+      actionPrefix: "backup-",
+      onChange: async pageIndex => {
+        await this.loadBackupHistory(pageIndex);
+      }
+    });
+    if (pagination) {
+      pagination.querySelectorAll("[data-action]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const action = button.dataset.action;
+          const current = page.PageIndex || 1;
+          if (action === "backup-prev-page") await this.loadBackupHistory(current - 1);
+          if (action === "backup-next-page") await this.loadBackupHistory(current + 1);
+        });
+      });
+    }
+  },
+
+  formatFileSize(bytes) {
+    const value = Number(bytes || 0);
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / 1024 / 1024).toFixed(1)} MB`;
+  },
+
+  renderImpresorasSettingsPanel() {
+    const list = document.getElementById("settingsPrintersList");
+    const detail = document.getElementById("settingsPrinterDetail");
+    if (!list || !detail) return;
+
+    const impresorasConfiguradas = Array.isArray(this.state.impresoras) ? this.state.impresoras : [];
+    const impresoras = impresorasConfiguradas.length ? impresorasConfiguradas : this.getDemoPrinters();
+    if (this.state.impresorasError) {
+      list.innerHTML = `
+        <div class="printer-empty-state">
+          <strong>No se pudieron cargar las impresoras</strong>
+          <p>${escapeHtml(this.state.impresorasError)}</p>
+        </div>
+      `;
+      detail.innerHTML = this.renderPrinterDetailEmpty("No hay detalle disponible.");
+      return;
+    }
+
+    const selectedId = this.selectedImpresoraId && impresoras.some(impresora => impresora.Id === this.selectedImpresoraId)
+      ? this.selectedImpresoraId
+      : (impresoras.find(impresora => impresora.EsPredeterminada)?.Id || impresoras[0].Id);
+    this.selectedImpresoraId = selectedId;
+    const selected = impresoras.find(impresora => impresora.Id === selectedId) || impresoras[0];
+    const selectedIndex = impresoras.findIndex(impresora => impresora.Id === selected.Id);
+
+    list.innerHTML = impresoras.map((impresora, index) => this.renderPrinterItem(impresora, impresora.Id === selected.Id, index)).join("");
+    detail.innerHTML = this.renderPrinterDetail(selected, Math.max(selectedIndex, 0));
+    this.bindImpresorasSettingsActions();
+  },
+
+  getDemoPrinters() {
+    return [
+      {
+        Id: -1,
+        Nombre: "Impresora Ticket Principal (EJEMPLO)",
+        NombreSistema: "DEMO_TICKET_PRINCIPAL",
+        Modelo: "EPSON TM-T20III",
+        Conexion: "USB002",
+        Puerto: "USB002",
+        Tipo: "Ticket",
+        AnchoPapelMm: 80,
+        CorteAutomatico: true,
+        DensidadImpresion: "Media",
+        EsPredeterminada: true,
+        Activa: true,
+        EsDemo: true,
+        ImagenUrl: "/assets/printers/ticket-principal.png"
+      },
+      {
+        Id: -2,
+        Nombre: "Impresora Ticket Secundaria (EJEMPLO)",
+        NombreSistema: "DEMO_TICKET_SECUNDARIA",
+        Modelo: "Xprinter XP-58IIH",
+        Conexion: "USB003",
+        Puerto: "USB003",
+        Tipo: "Ticket",
+        AnchoPapelMm: 80,
+        CorteAutomatico: false,
+        DensidadImpresion: "Media",
+        EsPredeterminada: false,
+        Activa: false,
+        EsDemo: true,
+        ImagenUrl: "/assets/printers/ticket-secundaria.png"
+      },
+      {
+        Id: -3,
+        Nombre: "Impresora A4 / Informes (EJEMPLO)",
+        NombreSistema: "DEMO_LASER_INFORMES",
+        Modelo: "HP LaserJet 107w",
+        Conexion: "Red 192.168.1.45",
+        Puerto: "Red 192.168.1.45",
+        Tipo: "Láser",
+        AnchoPapelMm: 210,
+        CorteAutomatico: false,
+        DensidadImpresion: "Media",
+        EsPredeterminada: false,
+        Activa: true,
+        EsDemo: true,
+        ImagenUrl: "/assets/printers/laser-informes.png"
+      }
+    ];
+  },
+
+  renderPrinterItem(impresora, selected, index = 0) {
+    const online = impresora.Activa !== false;
+    const paperLabel = impresora.Tipo === "Láser" ? "Tipo:" : "Ancho de papel:";
+    const paperValue = impresora.Tipo === "Láser" ? "Láser" : `${escapeHtml(String(impresora.AnchoPapelMm || 80))} mm`;
+    return `
+      <article class="printer-item ${selected ? "is-selected" : ""}" data-printer-id="${impresora.Id}" data-printer-action="select">
+        <div class="printer-visual" aria-hidden="true">${this.renderPrinterImage(impresora, index)}</div>
+        <div class="printer-item-main">
+          <div class="printer-badges">
+            ${impresora.EsPredeterminada ? `<span class="printer-default-badge">${this.renderCheckIcon()} Predeterminada</span>` : ""}
+          </div>
+          <h5>${escapeHtml(impresora.Nombre)}</h5>
+          <div class="printer-meta">
+            <span><strong>Modelo:</strong> ${escapeHtml(impresora.Modelo || "-")}</span>
+            <span><strong>Conexión:</strong> ${escapeHtml(impresora.Conexion || impresora.Puerto || "-")}</span>
+            <span><strong>${paperLabel}</strong> ${paperValue}</span>
+          </div>
+        </div>
+        <div class="printer-item-actions">
+          <div class="printer-actions-top">
+            <span class="printer-item-status ${online ? "" : "is-offline"}">${online ? "En línea" : "Desconectada"}</span>
+            <button class="printer-menu-btn" type="button" data-printer-action="configure" data-printer-id="${impresora.Id}" aria-label="Más opciones">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8h.01" /><path d="M12 12h.01" /><path d="M12 16h.01" /></svg>
+            </button>
+          </div>
+          <button class="btn btn-secondary" type="button" data-printer-action="test" data-printer-id="${impresora.Id}">
+            ${this.renderPrinterButtonIcon()}
+            Probar impresión
+          </button>
+          <button class="btn btn-secondary" type="button" data-printer-action="configure" data-printer-id="${impresora.Id}">
+            ${this.renderGearIcon()}
+            Configurar
+          </button>
+        </div>
+      </article>
+    `;
+  },
+
+  renderPrinterDetail(impresora, index = 0) {
+    const online = impresora.Activa !== false;
+    return `
+      <div class="printer-detail-top">
+        <div class="printer-detail-visual" aria-hidden="true">${this.renderPrinterImage(impresora, index)}</div>
+        ${impresora.EsPredeterminada ? `<span class="printer-default-badge">${this.renderCheckIcon()} Predeterminada</span>` : ""}
+      </div>
+      <div class="printer-detail-grid">
+        ${this.renderPrinterDetailRow("Nombre", impresora.Nombre)}
+        ${this.renderPrinterDetailRow("Modelo", impresora.Modelo || "-")}
+        ${this.renderPrinterDetailRow("Conexión", impresora.Conexion || "-")}
+        <div class="printer-detail-row">
+          <span>Estado</span>
+          <strong class="printer-detail-status ${online ? "" : "is-offline"}">${online ? "En línea" : "Desconectada"}</strong>
+        </div>
+        ${this.renderPrinterDetailRow("Ancho de papel", `${impresora.AnchoPapelMm || 80} mm`)}
+        ${this.renderPrinterDetailRow("Corte automático", impresora.CorteAutomatico ? "Habilitado" : "Deshabilitado")}
+        ${this.renderPrinterDetailRow("Densidad de impresión", impresora.DensidadImpresion || "Media")}
+        ${this.renderPrinterDetailRow("Puerto", impresora.Puerto || impresora.NombreSistema || "-")}
+      </div>
+      <button class="btn btn-secondary" type="button" data-printer-action="configure" data-printer-id="${impresora.Id}">
+        ${this.renderGearIcon()}
+        Configurar opciones avanzadas
+      </button>
+      <div class="printer-info-note">
+        <strong>Información</strong>
+        <p>${impresora.EsDemo
+          ? "Esta impresora es solo una referencia visual hasta que conectes o configures una impresora real de Windows."
+          : "Esta impresora se utilizará para imprimir tickets en el punto de venta cuando esté seleccionada como principal."}</p>
+      </div>
+    `;
+  },
+
+  renderPrinterDetailRow(label, value) {
+    return `
+      <div class="printer-detail-row">
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </div>
+    `;
+  },
+
+  renderPrinterDetailEmpty(message) {
+    return `
+      <div class="printer-empty-state">
+        <strong>Detalle de la impresora</strong>
+        <p>${escapeHtml(message)}</p>
+      </div>
+    `;
+  },
+
+  renderPrinterImage(impresora, index = 0) {
+    const printerImages = [
+      "/assets/printers/ticket-principal.png",
+      "/assets/printers/ticket-secundaria.png",
+      "/assets/printers/laser-informes.png"
+    ];
+    const normalizedType = String(impresora.Tipo || "").toLowerCase();
+    const fallback = normalizedType.includes("láser") || normalizedType.includes("laser") || normalizedType.includes("informe")
+      ? "/assets/printers/laser-informes.png"
+      : printerImages[Math.abs(index) % printerImages.length];
+    return `<img src="${escapeHtml(impresora.ImagenUrl || fallback)}" alt="">`;
+  },
+
+  renderCheckIcon() {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>`;
+  },
+
+  renderPrinterButtonIcon() {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V4h12v5" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6z" /></svg>`;
+  },
+
+  renderGearIcon() {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" /><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .6 1.8 1.8 0 0 0-.5 1.27V21a2 2 0 1 1-4 0v-.09A1.8 1.8 0 0 0 8 19.4a1.8 1.8 0 0 0-1.98.36l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-.6-1 1.8 1.8 0 0 0-1.27-.5H2.6a2 2 0 1 1 0-4h.09A1.8 1.8 0 0 0 4.6 8a1.8 1.8 0 0 0-.36-1.98l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.8 1.8 0 0 0 9 4.6a1.8 1.8 0 0 0 1-.6 1.8 1.8 0 0 0 .5-1.27V2.6a2 2 0 1 1 4 0v.09A1.8 1.8 0 0 0 16 4.6a1.8 1.8 0 0 0 1.98-.36l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.8 1.8 0 0 0 19.4 9c.06.35.25.67.6 1 .36.34.8.5 1.27.5h.13a2 2 0 1 1 0 4h-.09A1.8 1.8 0 0 0 19.4 15Z" /></svg>`;
+  },
+
+  renderPrinterIcon(tipo = "Ticket") {
+    if (tipo === "Informes") {
+      return `<svg viewBox="0 0 24 24"><path d="M6 9V4h12v5" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6z" /></svg>`;
+    }
+
+    return `<svg viewBox="0 0 24 24"><path d="M7 8V4h10v4" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M7 14h10v7H7z" /><path d="M9 17h6" /><path d="M17 11h.01" /></svg>`;
+  },
+
+  bindImpresorasSettingsActions() {
+    document.querySelectorAll("[data-printer-action]").forEach(element => {
+      if (element.dataset.printerBound === "true") return;
+
+      element.addEventListener("click", event => this.handleImpresorasSettingsAction(event));
+      element.dataset.printerBound = "true";
+    });
+  },
+
+  async handleImpresorasSettingsAction(event) {
+    event.stopPropagation();
+    const target = event.currentTarget;
+    const action = target.dataset.printerAction;
+    const printerId = Number(target.dataset.printerId);
+
+    if (action === "select" && Number.isFinite(printerId)) {
+      this.selectedImpresoraId = printerId;
+      this.renderImpresorasSettingsPanel();
+      return;
+    }
+
+    if (action === "add" || action === "refresh") {
+      await this.loadImpresoras();
+      this.renderImpresorasSettingsPanel();
+      this.syncTicketSettings(this.els.configuracionForm);
+      this.toast(action === "add"
+        ? "Se actualizaron las impresoras disponibles. La carga avanzada queda para la próxima etapa."
+        : "Impresoras actualizadas.", "success");
+      return;
+    }
+
+    if (action === "configure") {
+      this.toast("La gestión avanzada de impresoras queda preparada para la próxima etapa.", "info");
+      return;
+    }
+
+    if (action === "test" && Number.isFinite(printerId)) {
+      await this.handleSettingsPrinterTest(target, printerId);
+    }
+  },
+
+  async handleSettingsPrinterTest(button, printerId) {
+    const form = this.els.configuracionForm;
+    const configuracion = this.state.configuraciones[0] || {};
+    const printer = this.state.impresoras.find(impresora => impresora.Id === printerId);
+    const ticketWidth = this.getSelectedTicketWidth?.() || printer?.AnchoPapelMm || 80;
+
+    if (!printer) {
+      this.toast("La impresora de ejemplo es solo visual. Conecta una impresora real para probar impresión.", "info");
+      return;
+    }
+
+    setButtonLoading(button, true, "Enviando...");
+
+    try {
+      await this.api.request(`${API_ENDPOINTS.impresoras}/${printerId}/ticket-prueba`, {
+        method: "POST",
+        body: JSON.stringify({
+          ImpresoraNombre: null,
+          NombreNegocio: normalizeOptional(form?.NombreNegocio?.value || configuracion.NombreNegocio),
+          Mensaje: normalizeOptional(form?.MensajeTicket?.value || this.state.configuracionTicket?.MensajeTicket),
+          AnchoMm: ticketWidth,
+          ImprimirFechaHora: this.getFormCheckboxValue(form, "ImprimirFechaHoraTicket"),
+          ImprimirCajero: this.getFormCheckboxValue(form, "ImprimirCajeroTicket"),
+          ImprimirNumero: this.getFormCheckboxValue(form, "ImprimirNumeroTicket"),
+          CorteAutomatico: this.getFormCheckboxValue(form, "UsaTicketTermico")
+        })
+      });
+      this.toast("Ticket de prueba enviado a la impresora.", "success");
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      setButtonLoading(button, false, "Probar impresión");
+    }
   },
 
   bindBusinessSummary(form) {
@@ -435,6 +1290,10 @@ export const peopleSettingsMethods = {
     });
     document.querySelector("[data-action='test-ticket-printer']")
       ?.addEventListener("click", event => this.handleTicketPrinterTest(event, form));
+    document.querySelector(".ticket-upload-box")
+      ?.addEventListener("click", () => document.getElementById("ticketLogoInput")?.click());
+    document.getElementById("ticketLogoInput")
+      ?.addEventListener("change", event => this.handleTicketLogoUpload(event, form));
     ["NombreNegocio", "Telefono", "Email", "Direccion"].forEach(name => {
       form[name]?.addEventListener("input", () => this.updateTicketPreview(form));
     });
@@ -654,9 +1513,10 @@ export const peopleSettingsMethods = {
           NombreNegocio: normalizeOptional(form.NombreNegocio?.value),
           Mensaje: normalizeOptional(form.MensajeTicket?.value),
           AnchoMm: ticketWidth,
-          ImprimirFechaHora: form.ImprimirFechaHoraTicket?.checked !== false,
-          ImprimirCajero: form.ImprimirCajeroTicket?.checked !== false,
-          ImprimirNumero: form.ImprimirNumeroTicket?.checked !== false
+          ImprimirFechaHora: this.getFormCheckboxValue(form, "ImprimirFechaHoraTicket"),
+          ImprimirCajero: this.getFormCheckboxValue(form, "ImprimirCajeroTicket"),
+          ImprimirNumero: this.getFormCheckboxValue(form, "ImprimirNumeroTicket"),
+          CorteAutomatico: this.getFormCheckboxValue(form, "UsaTicketTermico")
         })
       });
       this.toast("Ticket de prueba enviado a la impresora.", "success");
@@ -667,21 +1527,67 @@ export const peopleSettingsMethods = {
     }
   },
 
+  async handleTicketLogoUpload(event, form) {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!form.dataset.id) {
+      this.toast("Guarda los datos del negocio antes de subir el logo.", "error");
+      input.value = "";
+      return;
+    }
+
+    const uploadButton = document.querySelector(".ticket-upload-box");
+    const uploadLabel = uploadButton?.querySelector("span");
+    const previousLabel = uploadLabel?.textContent || "Subir logo";
+    const data = new FormData();
+    data.append("archivo", file);
+
+    if (uploadButton) {
+      uploadButton.disabled = true;
+      uploadButton.classList.add("is-loading");
+    }
+    if (uploadLabel) uploadLabel.textContent = "Subiendo...";
+
+    try {
+      const configuracion = await this.api.request(API_ENDPOINTS.configuracionNegocioLogo(form.dataset.id), {
+        method: "POST",
+        body: data
+      });
+
+      this.state.configuraciones[0] = configuracion;
+      form.LogoUrl.value = configuracion.LogoUrl || "";
+      this.updateTicketPreview(form);
+      this.toast("Logo actualizado.", "success");
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      input.value = "";
+      if (uploadButton) {
+        uploadButton.disabled = false;
+        uploadButton.classList.remove("is-loading");
+      }
+      if (uploadLabel) uploadLabel.textContent = previousLabel;
+    }
+  },
+
   updateTicketPreview(form) {
     const businessElement = document.getElementById("ticketPreviewBusiness");
     const messageElement = document.getElementById("ticketPreviewMessage");
+    const logoElement = document.getElementById("ticketPreviewLogo");
     const fechaElement = document.querySelector('[data-ticket-preview-option="fecha"] strong');
     const previewOptions = {
-      "datos-negocio": form.ImprimirDatosNegocioTicket?.checked !== false,
-      fecha: form.ImprimirFechaHoraTicket?.checked !== false,
-      cajero: form.ImprimirCajeroTicket?.checked !== false,
-      numero: form.ImprimirNumeroTicket?.checked !== false,
-      medio: form.ImprimirMedioPagoTicket?.checked !== false,
-      subtotal: form.ImprimirSubtotalTotalTicket?.checked !== false,
-      total: form.ImprimirSubtotalTotalTicket?.checked !== false,
-      "descuento-recargo": form.ImprimirDescuentoRecargoTicket?.checked !== false,
-      cliente: form.ImprimirClienteTicket?.checked !== false,
-      mensaje: form.ImprimirMensajeCierreTicket?.checked !== false
+      "datos-negocio": this.getFormCheckboxValue(form, "ImprimirDatosNegocioTicket"),
+      fecha: this.getFormCheckboxValue(form, "ImprimirFechaHoraTicket"),
+      cajero: this.getFormCheckboxValue(form, "ImprimirCajeroTicket"),
+      numero: this.getFormCheckboxValue(form, "ImprimirNumeroTicket"),
+      medio: this.getFormCheckboxValue(form, "ImprimirMedioPagoTicket"),
+      subtotal: this.getFormCheckboxValue(form, "ImprimirSubtotalTotalTicket"),
+      total: this.getFormCheckboxValue(form, "ImprimirSubtotalTotalTicket"),
+      "descuento-recargo": this.getFormCheckboxValue(form, "ImprimirDescuentoRecargoTicket"),
+      cliente: this.getFormCheckboxValue(form, "ImprimirClienteTicket"),
+      mensaje: this.getFormCheckboxValue(form, "ImprimirMensajeCierreTicket")
     };
     if (businessElement) {
       businessElement.textContent = form.NombreNegocio?.value.trim() || "CajaGo";
@@ -689,10 +1595,19 @@ export const peopleSettingsMethods = {
     if (messageElement) {
       messageElement.textContent = form.MensajeTicket?.value.trim() || "Gracias por tu compra.";
     }
+    if (logoElement) {
+      const logoUrl = form.LogoUrl?.value.trim() || "";
+      logoElement.classList.toggle("hidden", !logoUrl);
+      if (logoUrl) {
+        logoElement.src = logoUrl;
+      } else {
+        logoElement.removeAttribute("src");
+      }
+    }
     if (fechaElement) {
       fechaElement.textContent = previewOptions.fecha ? formatDateTime(new Date()) : "";
     }
-    const businessDataVisible = form.ImprimirDatosNegocioTicket?.checked !== false;
+    const businessDataVisible = this.getFormCheckboxValue(form, "ImprimirDatosNegocioTicket");
     const businessDataNodes = {
       Direccion: form.Direccion?.value?.trim() || ""
     };

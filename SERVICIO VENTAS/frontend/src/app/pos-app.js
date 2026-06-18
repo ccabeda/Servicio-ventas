@@ -142,6 +142,12 @@ export class PosApp {
       this.toggleUserMenu();
     });
     document.addEventListener("click", () => this.closeUserMenu());
+    window.addEventListener("popstate", () => {
+      if (this.passwordChangeRequired) {
+        this.logout(false);
+        this.toast("Debes cambiar la contraseña para iniciar sesión.", "info");
+      }
+    });
     document.addEventListener("keydown", event => {
       if (event.key === "F1") {
         event.preventDefault();
@@ -173,9 +179,12 @@ export class PosApp {
       "Todas las marcas");
     this.els.productosMarcaFilter.addEventListener("change", () => this.resetProductosPageAndRender());
     this.els.productosEstadoFilter.addEventListener("change", () => this.resetProductosPageAndRender());
-    this.els.clientesFilterInput.addEventListener("input", () => this.resetClientesPageAndRender());
-    this.els.clientesEstadoFilter.addEventListener("change", () => this.resetClientesPageAndRender());
+    this.els.clientesFilterInput?.addEventListener("input", () => this.resetClientesPageAndRender());
+    this.els.clientesEstadoFilter?.addEventListener("change", () => this.resetClientesPageAndRender());
     this.els.usuariosFilterInput.addEventListener("input", () => this.resetUsuariosPageAndRender());
+    this.els.usuariosFilterInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") event.preventDefault();
+    });
     this.els.usuariosEstadoFilter.addEventListener("change", () => this.resetUsuariosPageAndRender());
     this.els.mediosPagoFilterInput.addEventListener("input", () => this.resetMediosPagoPageAndRender());
     this.els.mediosPagoEstadoFilter.addEventListener("change", () => this.resetMediosPagoPageAndRender());
@@ -197,7 +206,7 @@ export class PosApp {
     this.els.importProductosInput.addEventListener("change", event => this.handleImportProductosFile(event));
     this.els.manageMarcasButton.addEventListener("click", () => this.openMarcasManagerModal());
     this.els.newProductoButton.addEventListener("click", () => this.openEntityModal("producto"));
-    this.els.newClienteButton.addEventListener("click", () => this.openEntityModal("cliente"));
+    this.els.newClienteButton?.addEventListener("click", () => this.openEntityModal("cliente"));
     this.els.newUsuarioButton.addEventListener("click", () => this.openEntityModal("usuario"));
     this.els.newMedioPagoButton.addEventListener("click", () => this.openEntityModal("medioPago"));
     this.els.presetTodayButton.addEventListener("click", () => this.applyReportPreset("today"));
@@ -253,6 +262,11 @@ export class PosApp {
       await this.ensureSession();
       this.applyRoleVisibility();
       this.syncAuthView();
+      if (this.state.session?.DebeCambiarPassword) {
+        this.setAppLoading(false);
+        await this.openRequiredPasswordChange();
+        this.setAppLoading(true, "Cargando sistema");
+      }
       await this.loadBootstrapData();
       this.startClock();
       this.setCurrentView(this.state.currentView, { silentRedirect: true });
@@ -266,7 +280,10 @@ export class PosApp {
   }
 
   async ensureSession() {
-    if (this.state.session?.UsuarioId && Array.isArray(this.state.session.Permisos)) return;
+    if (this.state.session?.UsuarioId &&
+      Array.isArray(this.state.session.Permisos) &&
+      Object.prototype.hasOwnProperty.call(this.state.session, "DebeCambiarPassword")) return;
+
     this.state.session = await this.api.request(API_ENDPOINTS.authMe);
     saveJson(STORAGE_KEYS.session, this.state.session);
   }
@@ -276,7 +293,7 @@ export class PosApp {
       { label: "productos", run: () => this.loadProductos() },
       { label: "categorias", run: () => this.loadCategoriasProducto() },
       { label: "marcas", run: () => this.loadMarcasProducto() },
-      { label: "clientes", run: () => Promise.all([this.loadClientes(), this.loadClientesPage()]) },
+      { label: "clientes", run: () => this.loadClientes() },
       { label: "medios de pago", run: () => Promise.all([this.loadMediosPago(), this.loadMediosPagoPage()]) },
       { label: "ventas", run: () => this.loadVentas() },
       { label: "caja", run: () => this.loadCaja() },
@@ -318,10 +335,6 @@ export class PosApp {
         case "caja":
           await Promise.all([this.loadCaja(), this.loadHistorialCajas()]);
           this.renderCajaView();
-          break;
-        case "clientes":
-          await Promise.all([this.loadClientes(), this.loadClientesPage()]);
-          await this.renderClientesTable();
           break;
         case "usuarios":
           await Promise.all([this.loadUsuarios(), this.loadUsuariosPage()]);
@@ -378,7 +391,6 @@ export class PosApp {
       ventas: () => this.renderVentasView(),
       productos: () => this.renderProductosTable(),
       caja: () => this.renderCajaView(),
-      clientes: () => this.renderClientesTable(),
       usuarios: () => this.renderUsuariosTable(),
       mediosPago: () => this.renderMediosPagoTable(),
       configuracion: () => this.renderConfiguracionView(),

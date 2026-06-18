@@ -11,7 +11,6 @@ export const appHelperMethods = {
       ventas: "/ventas",
       productos: "/productos",
       caja: "/caja",
-      clientes: "/clientes",
       usuarios: "/usuarios",
       mediosPago: "/medios-pago",
       configuracion: "/configuracion",
@@ -375,6 +374,14 @@ export const appHelperMethods = {
   },
 
   ensureAllowedView(view) {
+    if (view === "usuarios") {
+      return "configuracion";
+    }
+
+    if (view === "clientes") {
+      return "ventas";
+    }
+
     if (!view || !Object.prototype.hasOwnProperty.call(this.VIEW_TITLES, view)) {
       return "dashboard";
     }

@@ -220,6 +220,14 @@ body.theme-dark .ticket-option-box {
     text-align: center;
 }
 
+.ticket-preview-logo {
+    max-width: 110px;
+    max-height: 54px;
+    object-fit: contain;
+    justify-self: center;
+    margin-bottom: 4px;
+}
+
 .ticket-preview-header-bar {
     display: flex;
     justify-content: space-between;

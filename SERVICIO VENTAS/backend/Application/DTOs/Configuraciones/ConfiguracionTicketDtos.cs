@@ -16,6 +16,11 @@ public class ConfiguracionTicketDto
     public bool ImprimirFechaHoraTicket { get; set; } = true;
     public bool ImprimirCajeroTicket { get; set; } = true;
     public bool ImprimirNumeroTicket { get; set; } = true;
+    public bool ImprimirMedioPagoTicket { get; set; } = true;
+    public bool ImprimirSubtotalTotalTicket { get; set; } = true;
+    public bool ImprimirDescuentoRecargoTicket { get; set; } = true;
+    public bool ImprimirClienteTicket { get; set; } = true;
+    public bool ImprimirMensajeCierreTicket { get; set; } = true;
     public bool CorteAutomatico { get; set; } = true;
 }
 
@@ -34,5 +39,10 @@ public class UpdateConfiguracionTicketDto
     public bool ImprimirFechaHoraTicket { get; set; } = true;
     public bool ImprimirCajeroTicket { get; set; } = true;
     public bool ImprimirNumeroTicket { get; set; } = true;
+    public bool ImprimirMedioPagoTicket { get; set; } = true;
+    public bool ImprimirSubtotalTotalTicket { get; set; } = true;
+    public bool ImprimirDescuentoRecargoTicket { get; set; } = true;
+    public bool ImprimirClienteTicket { get; set; } = true;
+    public bool ImprimirMensajeCierreTicket { get; set; } = true;
     public bool CorteAutomatico { get; set; } = true;
 }

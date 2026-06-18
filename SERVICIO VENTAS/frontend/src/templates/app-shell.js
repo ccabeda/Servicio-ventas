@@ -3,10 +3,8 @@ import { buildDashboardView } from "./dashboard-view.js";
 import { buildVentasView } from "./ventas-view.js";
 import {
   buildCajaView,
-  buildClientesView,
   buildMediosPagoView,
-  buildProductosView,
-  buildUsuariosView
+  buildProductosView
 } from "./management-views.js";
 import { buildConfiguracionView, buildReportesView } from "./settings-reportes-views.js";
 
@@ -64,11 +62,11 @@ function buildAppView() {
           <div class="config-subnav" aria-label="Submenú de configuración">
             <button class="active" type="button" data-settings-tab="negocio">Datos del negocio</button>
             <button type="button" data-settings-tab="ticket">Ticket</button>
-            <button type="button">Impresoras</button>
+            <button type="button" data-settings-tab="impresoras">Impresoras</button>
             <button type="button">Impuestos</button>
-            <button type="button">Usuarios</button>
+            <button type="button" data-settings-tab="usuarios">Usuarios</button>
             <button type="button" data-settings-tab="preferencias">Preferencias</button>
-            <button type="button">Respaldo</button>
+            <button type="button" data-settings-tab="respaldo">Respaldo</button>
           </div>
         </nav>
 
@@ -134,8 +132,6 @@ function buildAppView() {
         ${buildVentasView()}
         ${buildProductosView()}
         ${buildCajaView()}
-        ${buildClientesView()}
-        ${buildUsuariosView()}
         ${buildMediosPagoView()}
         ${buildConfiguracionView()}
         ${buildReportesView()}

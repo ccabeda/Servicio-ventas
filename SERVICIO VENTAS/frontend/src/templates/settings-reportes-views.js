@@ -10,11 +10,11 @@ export function buildConfiguracionView() {
         <nav class="settings-tabs" aria-label="Secciones de configuración">
           <button class="active" type="button" data-settings-tab="negocio">Datos del negocio</button>
           <button type="button" data-settings-tab="ticket">Ticket</button>
-          <button type="button">Impresoras</button>
+          <button type="button" data-settings-tab="impresoras">Impresoras</button>
           <button type="button">Impuestos</button>
-          <button type="button">Usuarios</button>
+          <button type="button" data-settings-tab="usuarios">Usuarios</button>
           <button type="button" data-settings-tab="preferencias">Preferencias</button>
-          <button type="button">Respaldo</button>
+          <button type="button" data-settings-tab="respaldo">Respaldo</button>
         </nav>
 
         <form id="configuracionForm" class="settings-form" novalidate>
@@ -204,8 +204,9 @@ export function buildConfiguracionView() {
                   <button class="ticket-upload-box" type="button">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V9l8-6 8 6v12" /><path d="M9 21v-7h6v7" /><path d="M8 10h.01" /><path d="M12 10h.01" /><path d="M16 10h.01" /></svg>
                     <span>Subir logo</span>
-                    <small>PNG o JPG (máx. 2MB)</small>
+                    <small>PNG o JPG (máx. 5MB)</small>
                   </button>
+                  <input id="ticketLogoInput" class="hidden" type="file" accept="image/png,image/jpeg">
                 </div>
               </div>
             </section>
@@ -221,6 +222,7 @@ export function buildConfiguracionView() {
                 <div class="ticket-preview-layout">
                   <div class="ticket-preview-receipt">
                     <div class="ticket-preview-top">
+                      <img id="ticketPreviewLogo" class="ticket-preview-logo hidden" alt="Logo del negocio">
                       <strong id="ticketPreviewBusiness">CajaGo</strong>
                       <div id="ticketPreviewBusinessData" class="ticket-preview-business-data" aria-live="polite" data-ticket-preview-option="datos-negocio">
                         <span id="ticketPreviewAddress" data-ticket-preview-business="Direccion"></span>
@@ -281,6 +283,116 @@ export function buildConfiguracionView() {
                   </div>
                 </div>
               </section>
+          </div>
+
+          <div id="settingsPrintersPanel" class="printers-settings-page hidden" data-settings-panel="impresoras">
+            <section class="settings-card printers-list-card">
+              <div class="settings-card-head printers-card-head">
+                <div>
+                  <h4>Impresoras configuradas</h4>
+                  <p>Administra las impresoras que utiliza tu sistema.</p>
+                </div>
+                <button class="btn btn-primary" type="button" data-printer-action="refresh">
+                  Actualizar impresoras
+                </button>
+              </div>
+              <div id="settingsPrintersList" class="printers-list"></div>
+            </section>
+
+            <aside class="settings-card printer-detail-card">
+              <div class="settings-card-head">
+                <div>
+                  <h4>Detalle de la impresora</h4>
+                  <p>Revisa el estado y la configuración principal.</p>
+                </div>
+              </div>
+              <div id="settingsPrinterDetail" class="printer-detail"></div>
+            </aside>
+          </div>
+
+          <div id="settingsUsersPanel" class="users-settings-page hidden" data-settings-panel="usuarios">
+            <section class="settings-card users-main-card">
+              <div class="settings-card-head users-card-head">
+                <div>
+                  <h4>Usuarios del sistema</h4>
+                  <p>Administra accesos, roles y estado de los usuarios autorizados.</p>
+                </div>
+                <button id="newUsuarioButton" class="btn btn-primary" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6" /><path d="M22 11h-6" /></svg>
+                  Nuevo usuario
+                </button>
+              </div>
+
+              <div class="users-toolbar">
+                <label class="field users-search-field">
+                  <span>Buscar</span>
+                  <input id="usuariosFilterInput" type="search" placeholder="Buscar por usuario...">
+                </label>
+                <label class="field users-status-field">
+                  <span>Estado</span>
+                  <select id="usuariosEstadoFilter">
+                    <option value="activos">Activos</option>
+                    <option value="todos">Todos</option>
+                    <option value="inactivos">Inactivos</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="users-table-card">
+                <div class="table-wrap">
+                  <table class="data-table users-table">
+                    <thead>
+                      <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Contraseña</th>
+                        <th>Creado</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usuariosTableBody"></tbody>
+                  </table>
+                </div>
+                <div id="usuariosPagination" class="table-pagination"></div>
+              </div>
+            </section>
+
+            <aside class="settings-card users-side-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0" /><circle cx="12" cy="8" r="4" /></svg></span>
+                <div>
+                  <h4>Resumen de accesos</h4>
+                  <p>Estado general de usuarios y permisos.</p>
+                </div>
+              </div>
+              <div class="users-summary-grid">
+                <div class="users-summary-item">
+                  <span>Total</span>
+                  <strong id="usuariosSummaryTotal">0</strong>
+                </div>
+                <div class="users-summary-item">
+                  <span>Activos</span>
+                  <strong id="usuariosSummaryActive">0</strong>
+                </div>
+                <div class="users-summary-item">
+                  <span>Admins</span>
+                  <strong id="usuariosSummaryAdmins">0</strong>
+                </div>
+              </div>
+              <div class="users-role-note">
+                <strong>Roles disponibles</strong>
+                <p><b>Admin</b> puede gestionar configuración, usuarios, stock e impresión. <b>Cajero</b> opera ventas y caja según permisos definidos.</p>
+              </div>
+              <div class="business-tip home-tip users-tip">
+                <span aria-hidden="true">!</span>
+                <strong>Consejo:</strong>
+                <p>Usá usuarios separados para cada persona. Así ventas, caja y movimientos quedan asociados a quien los realizó.</p>
+              </div>
+              <div class="settings-actions users-save-actions">
+                <button class="btn btn-primary" type="submit">Guardar cambios</button>
+              </div>
+            </aside>
           </div>
 
           <div class="settings-layout hidden" data-settings-panel="preferencias">
@@ -421,6 +533,180 @@ export function buildConfiguracionView() {
                 <label class="settings-check"><input name="EnviarEstadisticasAnonimas" type="checkbox" disabled><span>Enviar estadísticas anónimas para mejorar CajaGo</span></label>
               </div>
             </section>
+          </div>
+
+          <div id="settingsBackupPanel" class="backup-settings-page hidden" data-settings-panel="respaldo">
+            <section class="settings-card backup-main-card">
+              <div class="settings-card-head backup-card-head">
+                <span class="settings-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></svg></span>
+                <div>
+                  <h4>Respaldo de datos</h4>
+                  <p>Protege la información del punto de venta con copias de seguridad controladas.</p>
+                </div>
+              </div>
+
+              <div class="backup-hero">
+                <div>
+                  <span class="backup-eyebrow">Estado actual</span>
+                  <h5 id="backupStatusTitle">Sin respaldo reciente</h5>
+                  <p id="backupStatusText">Cuando generes una copia, acá vas a ver la última copia creada, su tamaño y el resultado del proceso.</p>
+                </div>
+                <span id="backupStatusBadge" class="backup-state-badge is-pending">Pendiente</span>
+              </div>
+
+              <div class="backup-actions-grid">
+                <button id="backupCreateButton" class="backup-action-card" type="button" data-backup-action="create">
+                  <span class="backup-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg></span>
+                  <strong>Crear respaldo ahora</strong>
+                  <small>Genera una copia completa de datos y archivos importantes.</small>
+                </button>
+                <button class="backup-action-card" type="button" data-backup-action="restore">
+                  <span class="backup-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v6h6" /><path d="M12 7v5l3 2" /></svg></span>
+                  <strong>Restaurar respaldo</strong>
+                  <small>Recupera el sistema desde una copia anterior confirmada.</small>
+                </button>
+                <button class="backup-action-card" type="button" data-backup-action="folder">
+                  <span class="backup-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" /><path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h4" /></svg></span>
+                  <strong>Ubicación de copias</strong>
+                  <small>Define dónde se guardarán los respaldos automáticos.</small>
+                </button>
+              </div>
+              <input id="backupRestoreInput" class="hidden" type="file" accept=".zip,application/zip,application/x-zip-compressed">
+
+              <section class="backup-history">
+                <div class="backup-current-path-inline">
+                  <span>Ruta actual:</span>
+                  <strong id="backupHistoryCurrentPath">Documentos\\CajaGo\\Respaldos</strong>
+                </div>
+                <div class="settings-card-head">
+                  <div>
+                    <h4>Historial de respaldos</h4>
+                    <p>Últimas copias generadas por el sistema.</p>
+                  </div>
+                </div>
+                <div class="backup-history-list">
+                  <div id="backupHistoryList" class="backup-history-empty">
+                    <strong>No hay respaldos generados</strong>
+                    <span>Usá “Crear respaldo ahora” para generar la primera copia.</span>
+                  </div>
+                  <div id="backupHistoryPagination" class="table-pagination backup-history-table-pagination"></div>
+                </div>
+              </section>
+            </section>
+
+            <aside class="settings-card backup-side-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /><path d="M9 12l2 2 4-4" /></svg></span>
+                <div>
+                  <h4>Plan de respaldo</h4>
+                  <p>Configura la frecuencia recomendada.</p>
+                </div>
+              </div>
+
+              <div class="backup-frequency-list">
+                <label class="backup-frequency-option is-selected">
+                  <input name="BackupFrequency" type="radio" value="daily" checked>
+                  <span>
+                    <strong>Diario</strong>
+                    <small>Recomendado para uso continuo.</small>
+                  </span>
+                </label>
+                <label class="backup-frequency-option">
+                  <input name="BackupFrequency" type="radio" value="weekly">
+                  <span>
+                    <strong>Semanal</strong>
+                    <small>Útil si el volumen de ventas es bajo.</small>
+                  </span>
+                </label>
+                <label class="backup-frequency-option">
+                  <input name="BackupFrequency" type="radio" value="monthly">
+                  <span>
+                    <strong>Mensual</strong>
+                    <small>Para negocios con pocos cambios de datos.</small>
+                  </span>
+                </label>
+              </div>
+
+              <div class="backup-plan-fields">
+                <label class="field">
+                  <span>Hora de respaldo</span>
+                  <select id="backupPlanTime" name="BackupPlanTime"></select>
+                </label>
+                <label class="field" id="backupPlanWeekdayField">
+                  <span>Día semanal</span>
+                  <select id="backupPlanWeekday" name="BackupPlanWeekday">
+                    <option value="1">Lunes</option>
+                    <option value="2">Martes</option>
+                    <option value="3">Miércoles</option>
+                    <option value="4">Jueves</option>
+                    <option value="5">Viernes</option>
+                    <option value="6">Sábado</option>
+                    <option value="0">Domingo</option>
+                  </select>
+                </label>
+                <label class="field" id="backupPlanMonthdayField">
+                  <span>Día mensual</span>
+                  <select id="backupPlanMonthday" name="BackupPlanMonthday">
+                    <option value="1">Día 1</option>
+                    <option value="2">Día 2</option>
+                    <option value="3">Día 3</option>
+                    <option value="4">Día 4</option>
+                    <option value="5">Día 5</option>
+                    <option value="6">Día 6</option>
+                    <option value="7">Día 7</option>
+                    <option value="8">Día 8</option>
+                    <option value="9">Día 9</option>
+                    <option value="10">Día 10</option>
+                    <option value="11">Día 11</option>
+                    <option value="12">Día 12</option>
+                    <option value="13">Día 13</option>
+                    <option value="14">Día 14</option>
+                    <option value="15">Día 15</option>
+                    <option value="16">Día 16</option>
+                    <option value="17">Día 17</option>
+                    <option value="18">Día 18</option>
+                    <option value="19">Día 19</option>
+                    <option value="20">Día 20</option>
+                    <option value="21">Día 21</option>
+                    <option value="22">Día 22</option>
+                    <option value="23">Día 23</option>
+                    <option value="24">Día 24</option>
+                    <option value="25">Día 25</option>
+                    <option value="26">Día 26</option>
+                    <option value="27">Día 27</option>
+                    <option value="28">Día 28</option>
+                    <option value="0">Último día del mes</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="backup-summary-card">
+                <div>
+                  <span>Último respaldo</span>
+                  <strong id="backupLastDate">Sin datos</strong>
+                </div>
+                <div>
+                  <span>Plan actual</span>
+                  <strong id="backupCurrentPlan">Diario · 03:00</strong>
+                </div>
+                <div>
+                  <span>Próximo respaldo</span>
+                  <strong id="backupNextRun">Pendiente</strong>
+                </div>
+                <div>
+                  <span>Último archivo</span>
+                  <strong id="backupLastFile">Sin datos</strong>
+                </div>
+                <div>
+                  <span>Ubicación</span>
+                  <strong id="backupCurrentPath">Predeterminada</strong>
+                </div>
+              </div>
+
+              <div class="settings-actions backup-save-actions">
+                <button id="backupSavePlanButton" class="btn btn-primary" type="button">Guardar plan</button>
+              </div>
+            </aside>
           </div>
 
           <div class="settings-actions preferences-save-actions">

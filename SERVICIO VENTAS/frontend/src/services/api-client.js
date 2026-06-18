@@ -5,10 +5,11 @@ export class ApiClient {
   }
 
   async request(url, options = {}) {
+    const isFormData = options.body instanceof FormData;
     const config = {
       method: options.method || "GET",
       headers: {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options.headers || {})
       },
       ...options
@@ -47,9 +48,10 @@ export class ApiClient {
           if (typeof error === "string") return error;
           const field = error.field || error.Field;
           const text = error.message || error.Message;
-          return field ? `${field}: ${text}` : text;
+          return this.formatValidationError(field, text);
         })
         .filter(Boolean)
+        .filter((detail, index, list) => this.shouldKeepValidationError(detail, index, list))
         .join(" ");
 
       return details || message;
@@ -58,13 +60,50 @@ export class ApiClient {
     if (errors && typeof errors === "object") {
       const details = Object.entries(errors)
         .flatMap(([field, values]) => Array.isArray(values)
-          ? values.map(value => `${field}: ${value}`)
-          : [`${field}: ${values}`])
+          ? values.map(value => this.formatValidationError(field, value))
+          : [this.formatValidationError(field, values)])
+        .filter(Boolean)
+        .filter((detail, index, list) => this.shouldKeepValidationError(detail, index, list))
         .join(" ");
 
       return details || message;
     }
 
     return message;
+  }
+
+  formatValidationError(field, text) {
+    const rawText = String(text || "").trim();
+    if (!rawText) return "";
+
+    if (/^the .+ field is required\.$/i.test(rawText)) {
+      return "";
+    }
+
+    const readableFields = {
+      NombreUsuario: "Usuario",
+      Password: "Contraseña",
+      Rol: "Rol",
+      Nombre: "Nombre",
+      Precio: "Precio",
+      Costo: "Costo",
+      Stock: "Stock"
+    };
+    const label = readableFields[field] || field;
+
+    if (!label) return rawText;
+    if (rawText.toLowerCase().includes(String(label).toLowerCase())) {
+      return rawText;
+    }
+
+    return `${label}: ${rawText}`;
+  }
+
+  shouldKeepValidationError(detail, index, list) {
+    if (!detail) return false;
+    if (list.indexOf(detail) !== index) return false;
+
+    const withoutField = detail.replace(/^[^:]+:\s*/, "").trim();
+    return !list.some((other, otherIndex) => otherIndex !== index && other.endsWith(withoutField));
   }
 }

@@ -9,6 +9,10 @@ export const ticketMethods = {
     const medioPago = this.state.mediosPago.find(item => item.Id === venta.MedioPagoId);
     const cliente = this.state.clientes.find(item => item.Id === venta.ClienteId);
     const showBusinessData = ticketConfig?.ImprimirDatosNegocioTicket !== false;
+    const showMedioPago = ticketConfig?.ImprimirMedioPagoTicket !== false;
+    const showCliente = ticketConfig?.ImprimirClienteTicket !== false;
+    const showMensajeCierre = ticketConfig?.ImprimirMensajeCierreTicket !== false;
+    const logoUrl = config?.LogoUrl || "";
     const businessLines = [config?.Direccion].filter(Boolean);
     const details = ticketItems.map(item => `
       <div class="ticket-row">
@@ -34,17 +38,19 @@ export const ticketMethods = {
     const ticketHtml = `
       <div class="ticket-header">
         <div class="ticket-header-main">
+          <!-- Pendiente: para impresoras térmicas reales, el logo debe convertirse a comandos ESC/POS desde backend. -->
+          ${logoUrl ? `<img class="ticket-logo" src="${escapeHtml(logoUrl)}" alt="Logo del negocio">` : ""}
           <h4>${escapeHtml(config?.NombreNegocio || "CajaGo")}</h4>
           ${showBusinessData && businessLines.length ? `<div>${businessLines.map(line => escapeHtml(line)).join("<br>")}</div>` : ""}
         </div>
       </div>
       ${saleMetaRows}
-      <div class="ticket-row"><span>Pago</span><strong>${escapeHtml(medioPago?.Nombre || "-")}</strong></div>
-      <div class="ticket-row"><span>Cliente</span><strong>${escapeHtml(cliente?.Nombre || "Consumidor final")}</strong></div>
+      ${showMedioPago ? `<div class="ticket-row"><span>Pago</span><strong>${escapeHtml(medioPago?.Nombre || "-")}</strong></div>` : ""}
+      ${showCliente ? `<div class="ticket-row"><span>Cliente</span><strong>${escapeHtml(cliente?.Nombre || "Consumidor final")}</strong></div>` : ""}
       <hr>
       ${details}
       ${summaryRows ? `<hr>${summaryRows}` : ""}
-      ${ticketConfig?.MensajeTicket ? `<hr><div>${escapeHtml(ticketConfig.MensajeTicket)}</div>` : ""}
+      ${showMensajeCierre && ticketConfig?.MensajeTicket ? `<hr><div>${escapeHtml(ticketConfig.MensajeTicket)}</div>` : ""}
     `;
 
     this.els.ticketContent.innerHTML = ticketConfig?.ImprimirCopiaTicket

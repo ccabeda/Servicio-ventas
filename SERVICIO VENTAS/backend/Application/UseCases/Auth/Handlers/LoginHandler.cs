@@ -46,6 +46,7 @@ public class LoginHandler(
             UsuarioId = usuario.Id,
             NombreUsuario = usuario.NombreUsuario,
             Rol = rol,
+            DebeCambiarPassword = usuario.DebeCambiarPassword,
             Permisos = permisos.ToList()
         };
     }

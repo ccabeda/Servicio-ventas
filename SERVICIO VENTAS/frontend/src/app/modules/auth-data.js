@@ -35,6 +35,7 @@ export const authDataMethods = {
         UsuarioId: data.UsuarioId,
         NombreUsuario: data.NombreUsuario,
         Rol: data.Rol,
+        DebeCambiarPassword: Boolean(data.DebeCambiarPassword),
         Permisos: data.Permisos || []
       };
 
@@ -50,6 +51,9 @@ export const authDataMethods = {
 
       this.syncAuthView();
       this.toast(`Sesión iniciada como ${data.NombreUsuario}.`, "success");
+      if (this.state.session.DebeCambiarPassword) {
+        await this.openRequiredPasswordChange();
+      }
       await this.initializeApp();
     } catch (error) {
       this.toast(this.getErrorMessage(error), "error");
@@ -64,6 +68,9 @@ export const authDataMethods = {
     this.state.token = "";
     this.state.session = null;
     this.state.cart = [];
+    this.passwordChangeRequired = false;
+    this.pendingPasswordChangeResolve = null;
+    this.pendingPasswordChangePromise = null;
 
     removeKey(this.STORAGE_KEYS.token);
     removeKey(this.STORAGE_KEYS.session);
@@ -83,6 +90,95 @@ export const authDataMethods = {
     const fechaDesde = this.toApiDateTime(this.startOfDay(today));
     const fechaHasta = this.toApiDateTime(this.endOfDay(today));
     this.state.reportes.resumen = await this.api.request(`/api/reportes/resumen-ventas?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`);
+  },
+
+  openRequiredPasswordChange() {
+    if (this.passwordChangeRequired && this.pendingPasswordChangePromise) {
+      return this.pendingPasswordChangePromise;
+    }
+
+    this.passwordChangeRequired = true;
+    window.history.pushState({ passwordChangeRequired: true }, "", window.location.href);
+    this.els.modalEyebrow.textContent = "Seguridad";
+    this.els.modalTitle.textContent = "Cambiar contraseña";
+    this.els.modalCloseButton.classList.add("hidden");
+    this.els.modalForm.noValidate = true;
+    this.els.modalForm.innerHTML = `
+      <div class="password-required-panel">
+        <strong>Primer ingreso</strong>
+        <p>Por seguridad, definí una contraseña para continuar usando el sistema.</p>
+      </div>
+      <div class="modal-grid-2">
+        <label class="field">
+          <span>Nueva contraseña</span>
+          <input name="NuevaPassword" type="password" autocomplete="new-password" required>
+        </label>
+        <label class="field">
+          <span>Confirmar contraseña</span>
+          <input name="ConfirmarPassword" type="password" autocomplete="new-password" required>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="submit">Guardar contraseña</button>
+      </div>
+    `;
+
+    this.els.modalForm.onsubmit = async event => {
+      event.preventDefault();
+      await this.submitRequiredPasswordChange();
+    };
+    this.els.modalRoot.classList.remove("hidden");
+    this.els.modalForm.querySelector("input[name='NuevaPassword']")?.focus();
+
+    this.pendingPasswordChangePromise = new Promise(resolve => {
+      this.pendingPasswordChangeResolve = resolve;
+    });
+
+    return this.pendingPasswordChangePromise;
+  },
+
+  async submitRequiredPasswordChange() {
+    const formData = new FormData(this.els.modalForm);
+    const nuevaPassword = String(formData.get("NuevaPassword") || "").trim();
+    const confirmarPassword = String(formData.get("ConfirmarPassword") || "").trim();
+    const submitButton = this.els.modalForm.querySelector("button[type='submit']");
+
+    if (!nuevaPassword || !confirmarPassword) {
+      this.toast("Completá la nueva contraseña y su confirmación.", "error");
+      return;
+    }
+
+    if (nuevaPassword !== confirmarPassword) {
+      this.toast("Las contraseñas no coinciden.", "error");
+      return;
+    }
+
+    setButtonLoading(submitButton, true, "Guardando...");
+
+    try {
+      const session = await this.api.request(API_ENDPOINTS.authCambiarPassword, {
+        method: "POST",
+        body: JSON.stringify({ NuevaPassword: nuevaPassword })
+      });
+      this.state.session = {
+        UsuarioId: session.UsuarioId,
+        NombreUsuario: session.NombreUsuario,
+        Rol: session.Rol,
+        DebeCambiarPassword: Boolean(session.DebeCambiarPassword),
+        Permisos: session.Permisos || []
+      };
+      saveJson(this.STORAGE_KEYS.session, this.state.session);
+      this.passwordChangeRequired = false;
+      this.closeModal();
+      this.pendingPasswordChangeResolve?.();
+      this.pendingPasswordChangeResolve = null;
+      this.pendingPasswordChangePromise = null;
+      this.toast("Contraseña actualizada.", "success");
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      setButtonLoading(submitButton, false, "Guardar contraseña");
+    }
   },
 
   async loadProductos() {
@@ -122,9 +218,9 @@ export const authDataMethods = {
     const params = new URLSearchParams({
       pageIndex: String(this.state.clientesPage.PageIndex || 1),
       pageSize: String(this.state.clientesPage.PageSize || 20),
-      estado: this.els.clientesEstadoFilter.value || "activos"
+      estado: this.els.clientesEstadoFilter?.value || "activos"
     });
-    const search = this.els.clientesFilterInput.value.trim();
+    const search = this.els.clientesFilterInput?.value?.trim() || "";
     if (search) params.set("search", search);
 
     this.state.clientesPage = await this.api.request(`${API_ENDPOINTS.clientesPaginado}?${params.toString()}`);

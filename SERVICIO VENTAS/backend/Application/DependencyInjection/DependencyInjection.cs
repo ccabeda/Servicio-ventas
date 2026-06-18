@@ -19,6 +19,7 @@ public static partial class DependencyInjection
             .AddMedioPagoHandlers()
             .AddProductoHandlers()
             .AddReporteHandlers()
+            .AddRespaldoHandlers()
             .AddUsuarioHandlers()
             .AddVentaHandlers();
 

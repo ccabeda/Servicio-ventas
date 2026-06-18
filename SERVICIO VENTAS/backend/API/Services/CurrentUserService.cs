@@ -1,9 +1,10 @@
 using System.Security.Claims;
 using ServicioVentas.API.Security;
+using ServicioVentas.Application.Services;
 
 namespace ServicioVentas.API.Services;
 
-public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService
+public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService, ICurrentUserContext
 {
     private ClaimsPrincipal User => httpContextAccessor.HttpContext?.User
         ?? throw new UnauthorizedAccessException("Usuario no autenticado.");

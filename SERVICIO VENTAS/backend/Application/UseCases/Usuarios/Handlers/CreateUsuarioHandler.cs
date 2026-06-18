@@ -12,6 +12,7 @@ namespace ServicioVentas.Application.UseCases.Usuarios.Handlers;
 
 public class CreateUsuarioHandler(IMapper mapper, IUsuarioRepositoryCommand commandRepo, IUsuarioRepositoryQuery queryRepo, IClock clock) : ICreateUsuarioHandler
 {
+    private const string PasswordInicial = "1234";
     private readonly PasswordHasher<Usuario> _hasher = new();
 
     public async Task<UsuarioDto> Handle(CreateUsuarioCommand command)
@@ -27,10 +28,10 @@ public class CreateUsuarioHandler(IMapper mapper, IUsuarioRepositoryCommand comm
             NombreUsuario = nombreUsuario,
             Rol = request.Rol,
             Activo = request.Activo,
-            DebeCambiarPassword = request.DebeCambiarPassword,
+            DebeCambiarPassword = true,
             FechaCreacion = clock.UtcNow
         };
-        usuario.PasswordHash = _hasher.HashPassword(usuario, request.Password);
+        usuario.PasswordHash = _hasher.HashPassword(usuario, PasswordInicial);
 
         await commandRepo.AddAsync(usuario);
         await commandRepo.SaveChangesAsync();
