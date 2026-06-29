@@ -4,7 +4,7 @@ using ServicioVentas.Domain.Models;
 
 namespace ServicioVentas.Application.Tests.Support;
 
-internal class FakeProductoRepository : IProductoRepositoryQuery, IProductoRepositoryCommand
+internal sealed class FakeProductoRepository : IProductoRepositoryQuery, IProductoRepositoryCommand
 {
     public List<Producto> Productos { get; } = [];
     public int UpdateCount { get; private set; }
@@ -36,7 +36,7 @@ internal class FakeProductoRepository : IProductoRepositoryQuery, IProductoRepos
     public Task<bool> ExistsByCodigoInternoAsync(string codigoInterno, int? excludeId = null) => Task.FromResult(Productos.Any(x => x.Activo && x.CodigoInterno == codigoInterno && x.Id != excludeId));
 }
 
-internal class FakeMovimientoStockRepository : IMovimientoStockRepositoryCommand, IMovimientoStockRepositoryQuery
+internal sealed class FakeMovimientoStockRepository : IMovimientoStockRepositoryCommand, IMovimientoStockRepositoryQuery
 {
     public List<MovimientoStock> Movimientos { get; } = [];
 
@@ -66,7 +66,7 @@ internal class FakeMovimientoStockRepository : IMovimientoStockRepositoryCommand
     }
 }
 
-internal class FakeCajaRepository : ICajaRepositoryQuery, ICajaRepositoryCommand
+internal sealed class FakeCajaRepository : ICajaRepositoryQuery, ICajaRepositoryCommand
 {
     public Caja? CajaAbierta { get; set; }
     public List<Caja> Cajas { get; } = [];
@@ -126,7 +126,7 @@ internal class FakeCajaRepository : ICajaRepositoryQuery, ICajaRepositoryCommand
     public Task<decimal> GetSaldoSistemaByCajaIdAsync(int cajaId) => Task.FromResult(SaldoSistema);
 }
 
-internal class FakeVentaRepository : IVentaRepositoryCommand
+internal sealed class FakeVentaRepository : IVentaRepositoryCommand
 {
     public List<Venta> Ventas { get; } = [];
     public List<MovimientoCaja> Movimientos { get; } = [];
@@ -144,7 +144,7 @@ internal class FakeVentaRepository : IVentaRepositoryCommand
     }
 }
 
-internal class FakeMedioPagoRepository : IMedioPagoRepositoryQuery
+internal sealed class FakeMedioPagoRepository : IMedioPagoRepositoryQuery
 {
     public List<MedioPago> MediosPago { get; } = [];
 
@@ -156,7 +156,7 @@ internal class FakeMedioPagoRepository : IMedioPagoRepositoryQuery
     public Task<int> CountActivosAsync() => Task.FromResult(MediosPago.Count(x => x.Activo));
 }
 
-internal class FakeClienteRepository : IClienteRepositoryQuery
+internal sealed class FakeClienteRepository : IClienteRepositoryQuery
 {
     public List<Cliente> Clientes { get; } = [];
 
@@ -165,7 +165,7 @@ internal class FakeClienteRepository : IClienteRepositoryQuery
     public Task<Cliente?> GetByIdAsync(int id) => Task.FromResult(Clientes.FirstOrDefault(x => x.Id == id));
 }
 
-internal class FakeConfiguracionNegocioRepository : IConfiguracionNegocioRepositoryQuery
+internal sealed class FakeConfiguracionNegocioRepository : IConfiguracionNegocioRepositoryQuery
 {
     public ConfiguracionNegocio? Principal { get; set; } = new();
 
@@ -174,7 +174,7 @@ internal class FakeConfiguracionNegocioRepository : IConfiguracionNegocioReposit
     public Task<ConfiguracionNegocio?> GetPrincipalAsync() => Task.FromResult(Principal);
 }
 
-internal class FakeImpresoraRepository : IImpresoraRepositoryQuery, IImpresoraRepositoryCommand
+internal sealed class FakeImpresoraRepository : IImpresoraRepositoryQuery, IImpresoraRepositoryCommand
 {
     public List<Impresora> Impresoras { get; } = [];
     public int SaveCount { get; private set; }
@@ -201,7 +201,7 @@ internal class FakeImpresoraRepository : IImpresoraRepositoryQuery, IImpresoraRe
     public Task<bool> ExistsByNombreSistemaAsync(string nombreSistema, int? excludeId = null) => Task.FromResult(Impresoras.Any(x => x.NombreSistema == nombreSistema && x.Id != excludeId));
 }
 
-internal class FakeConfiguracionTicketRepository : IConfiguracionTicketRepositoryQuery, IConfiguracionTicketRepositoryCommand
+internal sealed class FakeConfiguracionTicketRepository : IConfiguracionTicketRepositoryQuery, IConfiguracionTicketRepositoryCommand
 {
     public ConfiguracionTicket? Principal { get; set; }
     public int SaveCount { get; private set; }

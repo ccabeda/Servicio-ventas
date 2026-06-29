@@ -1,5 +1,5 @@
-using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.DTOs.Clientes;
+using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.UseCases.Clientes.Queries;
 
 namespace ServicioVentas.Application.IHandlers;

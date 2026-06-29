@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,6 +16,23 @@ public class RespaldoService(
     IWebHostEnvironment environment) : IRespaldoService
 {
     private const string BackupSettingsFileName = "backup-settings.json";
+    private static readonly string[] ManifestTables =
+    [
+        "productos",
+        "categorias-producto",
+        "marcas-producto",
+        "clientes",
+        "usuarios",
+        "medios-pago",
+        "configuracion-negocio",
+        "configuracion-ticket",
+        "impresoras",
+        "cajas",
+        "movimientos-caja",
+        "movimientos-stock",
+        "ventas",
+        "venta-detalles"
+    ];
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -83,23 +101,7 @@ public class RespaldoService(
                 Version = "1.0.0",
                 FechaUtc = fecha,
                 Formato = "json+uploads",
-                Tablas = new[]
-                {
-                    "productos",
-                    "categorias-producto",
-                    "marcas-producto",
-                    "clientes",
-                    "usuarios",
-                    "medios-pago",
-                    "configuracion-negocio",
-                    "configuracion-ticket",
-                    "impresoras",
-                    "cajas",
-                    "movimientos-caja",
-                    "movimientos-stock",
-                    "ventas",
-                    "venta-detalles"
-                }
+                Tablas = ManifestTables
             });
 
             await AddJsonEntry(archive, "data/productos.json", await context.Productos.AsNoTracking().ToListAsync());
@@ -334,7 +336,7 @@ public class RespaldoService(
         }
     }
 
-    private void RestaurarUploads(ZipArchive archive, string uploadsDirectory)
+    private static void RestaurarUploads(ZipArchive archive, string uploadsDirectory)
     {
         if (Directory.Exists(uploadsDirectory))
         {
@@ -466,7 +468,7 @@ public class RespaldoService(
         return NormalizeBackupDirectory(settings?.Directorio);
     }
 
-    private IReadOnlyList<string> GetBackupDirectories()
+    private List<string> GetBackupDirectories()
     {
         return new[] { GetBackupDirectory() }
             .Select(Path.GetFullPath)
@@ -540,7 +542,7 @@ public class RespaldoService(
     {
         if (TimeOnly.TryParse(time, out var parsed))
         {
-            return parsed.ToString("HH:mm");
+            return parsed.ToString("HH:mm", CultureInfo.InvariantCulture);
         }
 
         return "03:00";
@@ -558,7 +560,7 @@ public class RespaldoService(
 
     private static DateTimeOffset GetUltimoVencimiento(DateTimeOffset ahora, string frecuencia, string hora, int diaSemana, int diaMes)
     {
-        var horario = TimeOnly.Parse(hora);
+        var horario = TimeOnly.Parse(hora, CultureInfo.InvariantCulture);
         return frecuencia switch
         {
             "weekly" => GetUltimoVencimientoSemanal(ahora, horario, diaSemana),
@@ -569,7 +571,7 @@ public class RespaldoService(
 
     private static DateTimeOffset GetProximoVencimiento(DateTimeOffset ahora, string frecuencia, string hora, int diaSemana, int diaMes)
     {
-        var horario = TimeOnly.Parse(hora);
+        var horario = TimeOnly.Parse(hora, CultureInfo.InvariantCulture);
         return frecuencia switch
         {
             "weekly" => GetProximoVencimientoSemanal(ahora, horario, diaSemana),
@@ -649,7 +651,7 @@ public class RespaldoService(
 
     private static string BuildBackupFileName(string? customName, DateTime fecha)
     {
-        var timestamp = fecha.ToString("yyyyMMdd-HHmmss");
+        var timestamp = fecha.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
         var sanitizedName = SanitizeBackupName(customName);
         return string.IsNullOrWhiteSpace(sanitizedName)
             ? $"cajago-backup-{timestamp}.zip"

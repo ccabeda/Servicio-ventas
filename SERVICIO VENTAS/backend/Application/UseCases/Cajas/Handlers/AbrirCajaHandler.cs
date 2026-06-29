@@ -1,6 +1,6 @@
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IHandlers;
@@ -23,6 +23,12 @@ public class AbrirCajaHandler(
     ILogger<AbrirCajaHandler> logger,
     ServicioVentas.Application.IUnitOfWork.IUnitOfWork unitOfWork) : IAbrirCajaHandler
 {
+    private static readonly Action<ILogger, int, decimal, Exception?> CajaAbierta =
+        LoggerMessage.Define<int, decimal>(
+            LogLevel.Information,
+            new EventId(2001, nameof(CajaAbierta)),
+            "Caja abierta por usuario {UsuarioId} con monto inicial {MontoInicial}.");
+
     public async Task<CajaDto> Handle(AbrirCajaCommand command)
     {
         var request = command.Caja;
@@ -71,7 +77,7 @@ public class AbrirCajaHandler(
             ValoresNuevosJson = JsonSerializer.Serialize(new { montoInicial = request.MontoInicial })
         });
         await unitOfWork.SaveChangesAsync();
-        logger.LogInformation("Caja abierta por usuario {UsuarioId} con monto inicial {MontoInicial}.", command.UsuarioId, request.MontoInicial);
+        CajaAbierta(logger, command.UsuarioId, request.MontoInicial, null);
 
         return mapper.Map<CajaDto>(caja);
     }

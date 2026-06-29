@@ -8,6 +8,17 @@ public class RespaldoAutomaticoHostedService(
 {
     private static readonly TimeSpan StartupDelay = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(5);
+    private static readonly Action<ILogger, string, Exception?> RespaldoAutomaticoCreado =
+        LoggerMessage.Define<string>(
+            LogLevel.Information,
+            new EventId(6001, nameof(RespaldoAutomaticoCreado)),
+            "Respaldo automático creado: {NombreArchivo}");
+
+    private static readonly Action<ILogger, Exception?> RespaldoAutomaticoFallido =
+        LoggerMessage.Define(
+            LogLevel.Error,
+            new EventId(6002, nameof(RespaldoAutomaticoFallido)),
+            "No se pudo ejecutar el respaldo automático.");
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -30,7 +41,7 @@ public class RespaldoAutomaticoHostedService(
 
             if (respaldo is not null)
             {
-                logger.LogInformation("Respaldo automático creado: {NombreArchivo}", respaldo.NombreArchivo);
+                RespaldoAutomaticoCreado(logger, respaldo.NombreArchivo, null);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -38,7 +49,7 @@ public class RespaldoAutomaticoHostedService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "No se pudo ejecutar el respaldo automático.");
+            RespaldoAutomaticoFallido(logger, ex);
         }
     }
 }

@@ -1,10 +1,9 @@
 using System.Text;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using ServicioVentas.API.Middleware;
 using ServicioVentas.API.Security;
 using ServicioVentas.API.Services;
@@ -12,6 +11,7 @@ using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.ISecurity;
 using ServicioVentas.Application.Security;
 using ServicioVentas.Application.Services;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 namespace ServicioVentas.API;
 

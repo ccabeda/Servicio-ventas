@@ -6,12 +6,13 @@ namespace ServicioVentas.Infrastructure.Persistence.Configurations;
 
 public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
 {
-    public void Configure(EntityTypeBuilder<Usuario> entity)
+    public void Configure(EntityTypeBuilder<Usuario> builder)
     {
-        entity.ToTable("USUARIO");
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.NombreUsuario).IsRequired().HasMaxLength(100);
-        entity.Property(x => x.PasswordHash).IsRequired().HasMaxLength(500);
-        entity.HasIndex(x => x.NombreUsuario).IsUnique();
+        builder.ToTable("USUARIO");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.NombreUsuario).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.PasswordHash).IsRequired().HasMaxLength(500);
+        builder.HasIndex(x => x.NombreUsuario).IsUnique();
     }
 }
+

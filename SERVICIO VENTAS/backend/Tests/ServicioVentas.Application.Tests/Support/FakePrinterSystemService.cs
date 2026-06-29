@@ -3,7 +3,7 @@ using ServicioVentas.Application.Services;
 
 namespace ServicioVentas.Application.Tests.Support;
 
-internal class FakePrinterSystemService : IPrinterSystemService
+internal sealed class FakePrinterSystemService : IPrinterSystemService
 {
     public bool ThrowOnEnsure { get; set; }
     public List<string> EnsuredPrinters { get; } = [];

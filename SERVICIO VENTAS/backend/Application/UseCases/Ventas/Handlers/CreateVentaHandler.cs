@@ -1,6 +1,6 @@
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Ventas;
 using ServicioVentas.Application.IHandlers;
@@ -28,6 +28,12 @@ public class CreateVentaHandler(
     ILogger<CreateVentaHandler> logger,
     ServicioVentas.Application.IUnitOfWork.IUnitOfWork unitOfWork) : ICreateVentaHandler
 {
+    private static readonly Action<ILogger, int, int, decimal, int, Exception?> VentaCreada =
+        LoggerMessage.Define<int, int, decimal, int>(
+            LogLevel.Information,
+            new EventId(4001, nameof(VentaCreada)),
+            "Venta creada por usuario {UsuarioId} en caja {CajaId}. Total {Total}. Items {Items}.");
+
     public async Task<VentaDto> Handle(CreateVentaCommand command)
     {
         var request = command.Venta;
@@ -156,12 +162,7 @@ public class CreateVentaHandler(
             })
         });
         await unitOfWork.SaveChangesAsync();
-        logger.LogInformation(
-            "Venta creada por usuario {UsuarioId} en caja {CajaId}. Total {Total}. Items {Items}.",
-            usuarioId,
-            cajaAbierta.Id,
-            total,
-            detalles.Count);
+        VentaCreada(logger, usuarioId, cajaAbierta.Id, total, detalles.Count, null);
 
         return mapper.Map<VentaDto>(venta);
     }

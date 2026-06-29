@@ -1,0 +1,9 @@
+pre-commit:
+  commands:
+    dotnet-format:
+      run: dotnet format "SERVICIO VENTAS/SERVICIO VENTAS.sln" --verify-no-changes
+
+pre-push:
+  commands:
+    check:
+      run: powershell -ExecutionPolicy Bypass -File ./scripts/check.ps1

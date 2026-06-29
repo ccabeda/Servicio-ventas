@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using ServicioVentas.Application.DTOs.Ventas;
 using ServicioVentas.Application.Tests.Support;
 using ServicioVentas.Application.UseCases.Ventas.Commands;
 using ServicioVentas.Application.UseCases.Ventas.Handlers;
 using ServicioVentas.Domain.Enums;
 using ServicioVentas.Domain.Models;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ServicioVentas.Application.Tests.Ventas;
 

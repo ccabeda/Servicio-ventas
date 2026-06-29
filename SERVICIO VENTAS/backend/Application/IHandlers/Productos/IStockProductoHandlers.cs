@@ -1,5 +1,5 @@
-using ServicioVentas.Application.DTOs.Productos;
 using ServicioVentas.Application.DTOs.Common;
+using ServicioVentas.Application.DTOs.Productos;
 using ServicioVentas.Application.UseCases.Productos.Commands;
 using ServicioVentas.Application.UseCases.Productos.Queries;
 

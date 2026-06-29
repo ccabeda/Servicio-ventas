@@ -4,8 +4,8 @@ using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.IRepository.ICommand;
 using ServicioVentas.Application.IRepository.IQuery;
 using ServicioVentas.Application.Services;
-using ServicioVentas.Domain.Models;
 using ServicioVentas.Application.UseCases.Productos.Commands;
+using ServicioVentas.Domain.Models;
 
 namespace ServicioVentas.Application.UseCases.Productos.Handlers;
 

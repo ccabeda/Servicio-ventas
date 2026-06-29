@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -25,9 +26,9 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new(JwtRegisteredClaimNames.Sub, userId.ToString(CultureInfo.InvariantCulture)),
             new(JwtRegisteredClaimNames.UniqueName, nombreUsuario),
-            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.NameIdentifier, userId.ToString(CultureInfo.InvariantCulture)),
             new(ClaimTypes.Name, nombreUsuario),
             new(ClaimTypes.Role, rol)
         };

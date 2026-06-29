@@ -1,6 +1,6 @@
 using AutoMapper;
-using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.DTOs.Auditoria;
+using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.DTOs.Clientes;
 using ServicioVentas.Application.DTOs.Configuraciones;
 using ServicioVentas.Application.DTOs.MediosPago;

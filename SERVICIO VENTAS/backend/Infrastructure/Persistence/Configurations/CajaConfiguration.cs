@@ -6,26 +6,27 @@ namespace ServicioVentas.Infrastructure.Persistence.Configurations;
 
 public class CajaConfiguration : IEntityTypeConfiguration<Caja>
 {
-    public void Configure(EntityTypeBuilder<Caja> entity)
+    public void Configure(EntityTypeBuilder<Caja> builder)
     {
-        entity.ToTable("CAJA");
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.MontoInicial).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.MontoFinal).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.Diferencia).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.MotivoCierre).HasMaxLength(300);
-        entity.HasIndex(x => x.Abierta)
+        builder.ToTable("CAJA");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.MontoInicial).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.MontoFinal).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Diferencia).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.MotivoCierre).HasMaxLength(300);
+        builder.HasIndex(x => x.Abierta)
             .IsUnique()
             .HasFilter("[Abierta] = 1");
 
-        entity.HasOne(x => x.UsuarioApertura)
+        builder.HasOne(x => x.UsuarioApertura)
             .WithMany(x => x.CajasAbiertas)
             .HasForeignKey(x => x.UsuarioAperturaId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(x => x.UsuarioCierre)
+        builder.HasOne(x => x.UsuarioCierre)
             .WithMany(x => x.CajasCerradas)
             .HasForeignKey(x => x.UsuarioCierreId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

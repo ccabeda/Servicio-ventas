@@ -117,7 +117,7 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
             {
                 var current = IntPtr.Add(buffer, index * structSize);
                 var info = Marshal.PtrToStructure<PrinterInfo4>(current);
-                var name = Marshal.PtrToStringAuto(info.PrinterName);
+                var name = Marshal.PtrToStringUni(info.PrinterName);
                 if (!string.IsNullOrWhiteSpace(name))
                 {
                     printers.Add(name);
@@ -134,9 +134,17 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
 
     private static string? GetDefaultPrinterName()
     {
-        var builder = new StringBuilder(256);
-        var size = builder.Capacity;
-        return GetDefaultPrinter(builder, ref size) ? builder.ToString() : null;
+        var size = 0;
+        _ = GetDefaultPrinter(null, ref size);
+        if (size <= 0)
+        {
+            return null;
+        }
+
+        var buffer = new char[size];
+        return GetDefaultPrinter(buffer, ref size)
+            ? new string(buffer, 0, Math.Max(size - 1, 0))
+            : null;
     }
 
     private static bool IsTicketPrinterCandidate(string printerName)
@@ -204,7 +212,7 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct PrinterInfo4
     {
         public IntPtr PrinterName;
@@ -212,20 +220,20 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
         public uint Attributes;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    private class DocInfo
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private sealed class DocInfo
     {
-        [MarshalAs(UnmanagedType.LPTStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string DocumentName = string.Empty;
 
-        [MarshalAs(UnmanagedType.LPTStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string? OutputFile;
 
-        [MarshalAs(UnmanagedType.LPTStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string DataType = "RAW";
     }
 
-    [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern bool EnumPrinters(
         int flags,
         string? name,
@@ -235,16 +243,16 @@ public class WindowsPrinterSystemService(IClock clock) : IPrinterSystemService
         out int bytesNeeded,
         out int printersReturned);
 
-    [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern bool GetDefaultPrinter(StringBuilder printerName, ref int bufferSize);
+    [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+    private static extern bool GetDefaultPrinter([Out] char[]? printerName, ref int bufferSize);
 
-    [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern bool OpenPrinter(string printerName, out IntPtr printerHandle, IntPtr defaults);
 
-    [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool ClosePrinter(IntPtr printerHandle);
 
-    [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
+    [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern bool StartDocPrinter(IntPtr printerHandle, int level, [In] DocInfo documentInfo);
 
     [DllImport("winspool.drv", SetLastError = true)]

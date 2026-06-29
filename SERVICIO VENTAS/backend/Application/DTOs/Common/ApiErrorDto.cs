@@ -2,7 +2,7 @@ namespace ServicioVentas.Application.DTOs.Common;
 
 public class ApiErrorDto
 {
-    public bool Success { get; set; } = false;
+    public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
     public List<ApiFieldErrorDto> Errors { get; set; } = [];
 }

@@ -6,34 +6,35 @@ namespace ServicioVentas.Infrastructure.Persistence.Configurations;
 
 public class VentaConfiguration : IEntityTypeConfiguration<Venta>
 {
-    public void Configure(EntityTypeBuilder<Venta> entity)
+    public void Configure(EntityTypeBuilder<Venta> builder)
     {
-        entity.ToTable("VENTA");
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.Subtotal).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.Descuento).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.Recargo).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.Total).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.Observaciones).HasMaxLength(500);
+        builder.ToTable("VENTA");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Subtotal).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Descuento).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Recargo).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Total).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Observaciones).HasMaxLength(500);
 
-        entity.HasOne(x => x.Caja)
+        builder.HasOne(x => x.Caja)
             .WithMany(x => x.Ventas)
             .HasForeignKey(x => x.CajaId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(x => x.Usuario)
+        builder.HasOne(x => x.Usuario)
             .WithMany(x => x.Ventas)
             .HasForeignKey(x => x.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(x => x.Cliente)
+        builder.HasOne(x => x.Cliente)
             .WithMany(x => x.Ventas)
             .HasForeignKey(x => x.ClienteId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(x => x.MedioPago)
+        builder.HasOne(x => x.MedioPago)
             .WithMany(x => x.Ventas)
             .HasForeignKey(x => x.MedioPagoId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

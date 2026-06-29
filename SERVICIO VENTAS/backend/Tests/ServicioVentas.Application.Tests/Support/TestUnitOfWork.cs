@@ -1,6 +1,6 @@
 namespace ServicioVentas.Application.Tests.Support;
 
-internal class TestUnitOfWork : IUnitOfWork.IUnitOfWork
+internal sealed class TestUnitOfWork : IUnitOfWork.IUnitOfWork
 {
     public int SaveCount { get; private set; }
 

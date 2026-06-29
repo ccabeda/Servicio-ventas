@@ -1,6 +1,7 @@
+using System.Globalization;
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.DTOs.Productos;
@@ -24,6 +25,12 @@ public class AjustarStockProductoHandler(
     ILogger<AjustarStockProductoHandler> logger,
     IClock clock) : IAjustarStockProductoHandler
 {
+    private static readonly Action<ILogger, int, int, TipoMovimientoStock, decimal, decimal, Exception?> StockAjustado =
+        LoggerMessage.Define<int, int, TipoMovimientoStock, decimal, decimal>(
+            LogLevel.Information,
+            new EventId(3001, nameof(StockAjustado)),
+            "Stock ajustado para producto {ProductoId} por usuario {UsuarioId}. Tipo {Tipo}. Stock {StockAnterior} -> {StockNuevo}.");
+
     public async Task<ProductoDto> Handle(AjustarStockProductoCommand command)
     {
         var producto = await productoQueryRepo.GetByIdAsync(command.ProductoId)
@@ -87,20 +94,14 @@ public class AjustarStockProductoHandler(
             Modulo = "Stock",
             Accion = request.Tipo.ToString(),
             Entidad = "Producto",
-            EntidadId = producto.Id.ToString(),
+            EntidadId = producto.Id.ToString(CultureInfo.InvariantCulture),
             Detalle = $"Stock de {producto.Nombre}: {stockAnterior:0.##} -> {stockNuevo:0.##}.",
             ValoresAnterioresJson = JsonSerializer.Serialize(new { stock = stockAnterior }),
             ValoresNuevosJson = JsonSerializer.Serialize(new { stock = stockNuevo, motivo })
         });
         await productoCommandRepo.UpdateAsync(producto);
         await productoCommandRepo.SaveChangesAsync();
-        logger.LogInformation(
-            "Stock ajustado para producto {ProductoId} por usuario {UsuarioId}. Tipo {Tipo}. Stock {StockAnterior} -> {StockNuevo}.",
-            producto.Id,
-            command.UsuarioId,
-            request.Tipo,
-            stockAnterior,
-            stockNuevo);
+        StockAjustado(logger, producto.Id, command.UsuarioId, request.Tipo, stockAnterior, stockNuevo, null);
 
         return mapper.Map<ProductoDto>(producto);
     }

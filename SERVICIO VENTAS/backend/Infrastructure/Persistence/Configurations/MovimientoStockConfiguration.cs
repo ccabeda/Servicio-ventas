@@ -6,24 +6,25 @@ namespace ServicioVentas.Infrastructure.Persistence.Configurations;
 
 public class MovimientoStockConfiguration : IEntityTypeConfiguration<MovimientoStock>
 {
-    public void Configure(EntityTypeBuilder<MovimientoStock> entity)
+    public void Configure(EntityTypeBuilder<MovimientoStock> builder)
     {
-        entity.ToTable("MOVIMIENTO_STOCK");
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.Tipo).HasConversion<string>().HasMaxLength(20);
-        entity.Property(x => x.Cantidad).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.StockAnterior).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.StockNuevo).HasColumnType("decimal(18,2)");
-        entity.Property(x => x.Motivo).IsRequired().HasMaxLength(80);
-        entity.Property(x => x.Observacion).HasMaxLength(250);
-        entity.HasOne(x => x.Producto)
+        builder.ToTable("MOVIMIENTO_STOCK");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Tipo).HasConversion<string>().HasMaxLength(20);
+        builder.Property(x => x.Cantidad).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.StockAnterior).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.StockNuevo).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.Motivo).IsRequired().HasMaxLength(80);
+        builder.Property(x => x.Observacion).HasMaxLength(250);
+        builder.HasOne(x => x.Producto)
             .WithMany(x => x.MovimientosStock)
             .HasForeignKey(x => x.ProductoId)
             .OnDelete(DeleteBehavior.Restrict);
-        entity.HasOne(x => x.Usuario)
+        builder.HasOne(x => x.Usuario)
             .WithMany(x => x.MovimientosStock)
             .HasForeignKey(x => x.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
-        entity.HasIndex(x => new { x.ProductoId, x.Fecha });
+        builder.HasIndex(x => new { x.ProductoId, x.Fecha });
     }
 }
+

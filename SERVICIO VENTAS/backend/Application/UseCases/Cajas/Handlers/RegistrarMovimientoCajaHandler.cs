@@ -1,6 +1,7 @@
+using System.Globalization;
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IHandlers;
@@ -22,6 +23,12 @@ public class RegistrarMovimientoCajaHandler(
     ILogger<RegistrarMovimientoCajaHandler> logger,
     ServicioVentas.Application.IUnitOfWork.IUnitOfWork unitOfWork) : IRegistrarMovimientoCajaHandler
 {
+    private static readonly Action<ILogger, int, int, TipoMovimientoCaja, decimal, Exception?> MovimientoCajaRegistrado =
+        LoggerMessage.Define<int, int, TipoMovimientoCaja, decimal>(
+            LogLevel.Information,
+            new EventId(2002, nameof(MovimientoCajaRegistrado)),
+            "Movimiento de caja registrado. Caja {CajaId}, usuario {UsuarioId}, tipo {Tipo}, monto {Monto}.");
+
     public async Task<MovimientoCajaDto> Handle(RegistrarMovimientoCajaCommand command)
     {
         var caja = await cajaRepositoryQuery.GetByIdAsync(command.CajaId)
@@ -61,7 +68,7 @@ public class RegistrarMovimientoCajaHandler(
             Modulo = "Caja",
             Accion = request.Tipo.ToString(),
             Entidad = "Caja",
-            EntidadId = caja.Id.ToString(),
+            EntidadId = caja.Id.ToString(CultureInfo.InvariantCulture),
             Detalle = $"{request.Tipo} en caja {caja.Id}: {request.Concepto.Trim()} por {request.Monto:0.##}.",
             ValoresNuevosJson = JsonSerializer.Serialize(new
             {
@@ -71,12 +78,7 @@ public class RegistrarMovimientoCajaHandler(
             })
         });
         await unitOfWork.SaveChangesAsync();
-        logger.LogInformation(
-            "Movimiento de caja registrado. Caja {CajaId}, usuario {UsuarioId}, tipo {Tipo}, monto {Monto}.",
-            caja.Id,
-            command.UsuarioId,
-            request.Tipo,
-            request.Monto);
+        MovimientoCajaRegistrado(logger, caja.Id, command.UsuarioId, request.Tipo, request.Monto, null);
 
         return mapper.Map<MovimientoCajaDto>(movimiento);
     }

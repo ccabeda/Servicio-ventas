@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.Exceptions;
 
@@ -11,6 +11,18 @@ public class ExceptionHandlingMiddleware(
     ILogger<ExceptionHandlingMiddleware> logger,
     IWebHostEnvironment environment)
 {
+    private static readonly Action<ILogger, Exception?> DatabaseException =
+        LoggerMessage.Define(
+            LogLevel.Error,
+            new EventId(5001, nameof(DatabaseException)),
+            "Se produjo una excepción de base de datos.");
+
+    private static readonly Action<ILogger, Exception?> UnhandledException =
+        LoggerMessage.Define(
+            LogLevel.Error,
+            new EventId(5002, nameof(UnhandledException)),
+            "Se produjo una excepción no controlada.");
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -43,12 +55,12 @@ public class ExceptionHandlingMiddleware(
                 ? ObtenerMensajeDb(sqlException)
                 : "No se pudieron guardar los cambios en la base de datos.";
 
-            logger.LogError(exception, "Se produjo una excepción de base de datos.");
+            DatabaseException(logger, exception);
             await HandleExceptionAsync(context, StatusCodes.Status409Conflict, message);
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Se produjo una excepción no controlada.");
+            UnhandledException(logger, exception);
             var message = environment.IsDevelopment()
                 ? exception.Message
                 : "Se produjo un error inesperado.";

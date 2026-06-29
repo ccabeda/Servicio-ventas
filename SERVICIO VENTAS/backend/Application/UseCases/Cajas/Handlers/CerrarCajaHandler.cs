@@ -1,6 +1,7 @@
+using System.Globalization;
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IHandlers;
@@ -23,6 +24,12 @@ public class CerrarCajaHandler(
     ILogger<CerrarCajaHandler> logger,
     ServicioVentas.Application.IUnitOfWork.IUnitOfWork unitOfWork) : ICerrarCajaHandler
 {
+    private static readonly Action<ILogger, int, int, decimal, decimal?, Exception?> CajaCerrada =
+        LoggerMessage.Define<int, int, decimal, decimal?>(
+            LogLevel.Information,
+            new EventId(2003, nameof(CajaCerrada)),
+            "Caja {CajaId} cerrada por usuario {UsuarioId}. Monto final {MontoFinal}. Diferencia {Diferencia}.");
+
     public async Task<CajaDto> Handle(CerrarCajaCommand command)
     {
         var caja = await cajaRepositoryQuery.GetByIdAsync(command.CajaId)
@@ -73,7 +80,7 @@ public class CerrarCajaHandler(
             Modulo = "Caja",
             Accion = "Cierre",
             Entidad = "Caja",
-            EntidadId = caja.Id.ToString(),
+            EntidadId = caja.Id.ToString(CultureInfo.InvariantCulture),
             Detalle = $"Caja {caja.Id} cerrada con monto final {request.MontoFinal:0.##} y diferencia {caja.Diferencia:0.##}.",
             ValoresNuevosJson = JsonSerializer.Serialize(new
             {
@@ -84,12 +91,7 @@ public class CerrarCajaHandler(
             })
         });
         await unitOfWork.SaveChangesAsync();
-        logger.LogInformation(
-            "Caja {CajaId} cerrada por usuario {UsuarioId}. Monto final {MontoFinal}. Diferencia {Diferencia}.",
-            caja.Id,
-            command.UsuarioId,
-            request.MontoFinal,
-            caja.Diferencia);
+        CajaCerrada(logger, caja.Id, command.UsuarioId, request.MontoFinal, caja.Diferencia, null);
 
         return mapper.Map<CajaDto>(caja);
     }

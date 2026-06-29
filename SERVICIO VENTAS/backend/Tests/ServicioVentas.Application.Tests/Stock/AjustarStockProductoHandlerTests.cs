@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using ServicioVentas.Application.DTOs.Productos;
 using ServicioVentas.Application.Tests.Support;
 using ServicioVentas.Application.UseCases.Productos.Commands;
 using ServicioVentas.Application.UseCases.Productos.Handlers;
 using ServicioVentas.Domain.Enums;
 using ServicioVentas.Domain.Models;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ServicioVentas.Application.Tests.Stock;
 

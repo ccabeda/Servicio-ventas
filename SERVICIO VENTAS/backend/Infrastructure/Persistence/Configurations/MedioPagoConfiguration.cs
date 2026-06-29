@@ -6,11 +6,12 @@ namespace ServicioVentas.Infrastructure.Persistence.Configurations;
 
 public class MedioPagoConfiguration : IEntityTypeConfiguration<MedioPago>
 {
-    public void Configure(EntityTypeBuilder<MedioPago> entity)
+    public void Configure(EntityTypeBuilder<MedioPago> builder)
     {
-        entity.ToTable("MEDIO_PAGO");
-        entity.HasKey(x => x.Id);
-        entity.Property(x => x.Nombre).IsRequired().HasMaxLength(100);
-        entity.HasIndex(x => x.Nombre).IsUnique();
+        builder.ToTable("MEDIO_PAGO");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Nombre).IsRequired().HasMaxLength(100);
+        builder.HasIndex(x => x.Nombre).IsUnique();
     }
 }
+

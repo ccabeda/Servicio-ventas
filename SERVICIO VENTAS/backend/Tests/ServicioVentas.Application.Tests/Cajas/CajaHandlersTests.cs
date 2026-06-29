@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.Exceptions;
 using ServicioVentas.Application.Tests.Support;
 using ServicioVentas.Application.UseCases.Cajas.Commands;
 using ServicioVentas.Application.UseCases.Cajas.Handlers;
 using ServicioVentas.Domain.Models;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ServicioVentas.Application.Tests.Cajas;
 
