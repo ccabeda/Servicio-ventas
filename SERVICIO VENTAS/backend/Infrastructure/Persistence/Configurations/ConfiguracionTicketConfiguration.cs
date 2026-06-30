@@ -24,6 +24,7 @@ public class ConfiguracionTicketConfiguration : IEntityTypeConfiguration<Configu
         builder.Property(x => x.ImprimirCajeroTicket).HasDefaultValue(true);
         builder.Property(x => x.ImprimirNumeroTicket).HasDefaultValue(true);
         builder.Property(x => x.ImprimirMedioPagoTicket).HasDefaultValue(true);
+        builder.Property(x => x.ImprimirDesgloseImpuestosTicket).HasDefaultValue(true);
         builder.Property(x => x.ImprimirSubtotalTotalTicket).HasDefaultValue(true);
         builder.Property(x => x.ImprimirDescuentoRecargoTicket).HasDefaultValue(true);
         builder.Property(x => x.ImprimirClienteTicket).HasDefaultValue(true);

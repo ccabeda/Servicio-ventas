@@ -5,6 +5,10 @@
 @import "./styles/components/dropdowns.css";
 @import "./styles/views/products.css";
 @import "./styles/components/forms-actions.css";
+@import "./styles/views/ventas.css";
 @import "./styles/views/dashboard.css";
 @import "./styles/views/settings.css";
+@import "./styles/views/reportes.css";
+@import "./styles/views/caja.css";
 @import "./styles/responsive.css";
+@import "./styles/dark-mode-fixes.css";

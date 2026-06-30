@@ -12,7 +12,9 @@ public class ProductoRepositoryQuery(ServicioVentasDbContext context) : IProduct
         return await context.Productos
             .AsNoTracking()
             .Include(x => x.Categoria)
+                .ThenInclude(x => x!.Impuesto)
             .Include(x => x.Marca)
+            .Include(x => x.Impuesto)
             .Where(x => x.Activo)
             .OrderBy(x => x.Nombre)
             .ToListAsync();
@@ -29,7 +31,9 @@ public class ProductoRepositoryQuery(ServicioVentasDbContext context) : IProduct
         var query = context.Productos
             .AsNoTracking()
             .Include(x => x.Categoria)
+                .ThenInclude(x => x!.Impuesto)
             .Include(x => x.Marca)
+            .Include(x => x.Impuesto)
             .AsQueryable();
 
         query = estado switch
@@ -74,13 +78,18 @@ public class ProductoRepositoryQuery(ServicioVentasDbContext context) : IProduct
     {
         return await context.Productos
             .Include(x => x.Categoria)
+                .ThenInclude(x => x!.Impuesto)
             .Include(x => x.Marca)
+            .Include(x => x.Impuesto)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<List<Producto>> GetByIdsAsync(List<int> ids)
     {
         return await context.Productos
+            .Include(x => x.Categoria)
+                .ThenInclude(x => x!.Impuesto)
+            .Include(x => x.Impuesto)
             .Where(x => ids.Contains(x.Id))
             .ToListAsync();
     }

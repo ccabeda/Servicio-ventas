@@ -322,6 +322,7 @@ export const peopleSettingsMethods = {
     this.updateBusinessSummary(form);
     this.syncTicketSettings(form);
     this.renderImpresorasSettingsPanel();
+    this.syncFormCheckboxControl(form, "AplicarImpuestosEnVentas", true);
     return;
     }
 
@@ -341,6 +342,7 @@ export const peopleSettingsMethods = {
     this.syncFormCheckboxControl(form, "MantenerClienteAlFinalizarVenta", configuracion.MantenerClienteAlFinalizarVenta !== false);
     this.syncFormCheckboxControl(form, "MostrarStockEnBusquedaProductos", configuracion.MostrarStockEnBusquedaProductos !== false);
     this.syncFormCheckboxControl(form, "PedirCantidadAlAgregarProducto", Boolean(configuracion.PedirCantidadAlAgregarProducto));
+    this.syncFormCheckboxControl(form, "AplicarImpuestosEnVentas", configuracion.AplicarImpuestosEnVentas !== false);
     form.DescuentoMaximoPermitido.value = configuracion.DescuentoMaximoPermitido ?? 20;
     form.RedondeoTotal.value = configuracion.RedondeoTotal || "0.05";
     this.syncFormCheckboxControl(form, "PedirMotivoCerrarCaja", configuracion.PedirMotivoCerrarCaja !== false);
@@ -377,6 +379,7 @@ export const peopleSettingsMethods = {
     this.syncFormCheckboxControl(form, "ImprimirCajeroTicket", getTicketFlag("ImprimirCajeroTicket", true));
     this.syncFormCheckboxControl(form, "ImprimirNumeroTicket", getTicketFlag("ImprimirNumeroTicket", true));
     this.syncFormCheckboxControl(form, "ImprimirMedioPagoTicket", getTicketFlag("ImprimirMedioPagoTicket", true));
+    this.syncFormCheckboxControl(form, "ImprimirDesgloseImpuestosTicket", getTicketFlag("ImprimirDesgloseImpuestosTicket", true));
     this.syncFormCheckboxControl(form, "ImprimirSubtotalTotalTicket", getTicketFlag("ImprimirSubtotalTotalTicket", true));
     this.syncFormCheckboxControl(form, "ImprimirDescuentoRecargoTicket", getTicketFlag("ImprimirDescuentoRecargoTicket", true));
     this.syncFormCheckboxControl(form, "ImprimirClienteTicket", getTicketFlag("ImprimirClienteTicket", true));
@@ -427,6 +430,10 @@ export const peopleSettingsMethods = {
         title: "Configuración de impresoras",
         description: "Administra y configura las impresoras de tickets y documentos."
       },
+      impuestos: {
+        title: "Impuestos",
+        description: "Configura tasas, criterios de cálculo y visualización fiscal para ventas y tickets."
+      },
       usuarios: {
         title: "Usuarios",
         description: "Gestiona accesos, roles y usuarios autorizados del punto de venta."
@@ -442,7 +449,7 @@ export const peopleSettingsMethods = {
     };
     const selected = meta[section] ? section : "negocio";
     this.currentSettingsSection = selected;
-    this.els.appShell?.classList.remove("settings-negocio", "settings-ticket", "settings-impresoras", "settings-usuarios", "settings-preferencias", "settings-respaldo");
+    this.els.appShell?.classList.remove("settings-negocio", "settings-ticket", "settings-impresoras", "settings-impuestos", "settings-usuarios", "settings-preferencias", "settings-respaldo");
     this.els.appShell?.classList.add(`settings-${selected}`);
 
     document.querySelectorAll("[data-settings-tab]").forEach(button => {
@@ -462,6 +469,10 @@ export const peopleSettingsMethods = {
       this.renderImpresorasSettingsPanel();
     }
 
+    if (selected === "impuestos") {
+      this.renderImpuestosSettingsPanel();
+    }
+
     if (selected === "usuarios") {
       this.renderUsuariosTable();
     }
@@ -471,6 +482,489 @@ export const peopleSettingsMethods = {
       this.loadBackupConfiguration();
       this.loadBackupHistory();
     }
+  },
+
+  async renderImpuestosSettingsPanel() {
+    const panel = document.querySelector('[data-settings-panel="impuestos"]');
+    if (!panel) return;
+
+    const ratesList = document.getElementById("taxRatesList");
+    if (ratesList && !ratesList.children.length) {
+      ratesList.innerHTML = `
+        <article class="tax-rate-row tax-rate-row-loading">
+          <div><strong>Cargando tasas...</strong><span>Consultando configuración fiscal.</span></div>
+          <b>-</b>
+          <em>...</em>
+          <span></span>
+        </article>
+      `;
+    }
+
+    if (!Array.isArray(this.state.impuestos) || !this.state.impuestos.length) {
+      await this.loadImpuestos();
+    } else {
+      await this.loadImpuestosListPage();
+    }
+
+    this.renderTaxSummary();
+    this.renderTaxDefaultSelect();
+    this.renderTaxRatesList();
+    this.renderTaxCategoryPreview();
+    this.bindTaxSettingsActions();
+    this.bindTaxCategoryActions();
+    this.enhanceCustomSelects?.(panel);
+  },
+
+  renderTaxSummary() {
+    const resumen = this.state.impuestosResumen;
+    const defaultTax = resumen?.Predeterminado || this.state.impuestos.find(impuesto => impuesto.EsPredeterminado);
+
+    const defaultEl = document.getElementById("taxDefaultSummary");
+    const activeEl = document.getElementById("taxActiveSummary");
+    const withoutRateEl = document.getElementById("taxProductsWithoutRateSummary");
+
+    if (this.state.impuestosError) {
+      if (defaultEl) defaultEl.textContent = "Error";
+      if (activeEl) activeEl.textContent = "-";
+      if (withoutRateEl) withoutRateEl.textContent = "-";
+      return;
+    }
+
+    if (defaultEl) defaultEl.textContent = defaultTax ? this.formatTaxLabel(defaultTax) : "Sin definir";
+    if (activeEl) activeEl.textContent = String(resumen?.TasasActivas ?? this.state.impuestos.filter(impuesto => impuesto.Activo !== false).length);
+    if (withoutRateEl) withoutRateEl.textContent = String(resumen?.ProductosSinTasa ?? 0);
+  },
+
+  renderTaxDefaultSelect() {
+    const select = document.getElementById("taxDefaultSelect");
+    if (!select) return;
+
+    if (this.state.impuestosError) {
+      select.innerHTML = `<option value="">No se pudieron cargar las tasas</option>`;
+      this.renderTaxSimulation(null);
+      return;
+    }
+
+    const impuestos = this.state.impuestos.filter(impuesto => impuesto.Activo !== false);
+    if (!impuestos.length) {
+      select.innerHTML = `<option value="">Sin tasas configuradas</option>`;
+      this.renderTaxSimulation(null);
+      return;
+    }
+
+    select.innerHTML = impuestos.map(impuesto => `
+      <option value="${impuesto.Id}" ${impuesto.EsPredeterminado ? "selected" : ""}>${escapeHtml(this.formatTaxLabel(impuesto))}</option>
+    `).join("");
+
+    const selectedTax = impuestos.find(impuesto => String(impuesto.Id) === select.value) || impuestos[0];
+    this.renderTaxSimulation(selectedTax);
+  },
+
+  renderTaxRatesList() {
+    const list = document.getElementById("taxRatesList");
+    const count = document.getElementById("taxRatesCount");
+    if (!list) return;
+
+    const activeRates = this.state.impuestos.filter(impuesto => impuesto.Activo !== false);
+    if (count) count.textContent = `${activeRates.length} ${activeRates.length === 1 ? "activa" : "activas"}`;
+    this.syncTaxRatesStatusFilter();
+
+    if (this.state.impuestosError) {
+      list.innerHTML = `
+        <article class="tax-rate-row tax-rate-row-empty">
+          <div>
+            <strong>No pudimos cargar las tasas</strong>
+            <span>${escapeHtml(this.state.impuestosError)}</span>
+          </div>
+          <b>-</b>
+          <em>Error</em>
+          <span></span>
+        </article>
+      `;
+      return;
+    }
+
+    const pageItems = this.state.impuestosListPage?.Items || [];
+    if (!pageItems.length) {
+      list.innerHTML = `
+        <article class="tax-rate-row tax-rate-row-empty">
+          <div>
+            <strong>No hay tasas para este filtro</strong>
+            <span>Cambiá el estado del filtro o creá una nueva tasa.</span>
+          </div>
+          <b>-</b>
+          <em>Vacío</em>
+          <span></span>
+        </article>
+      `;
+      return;
+    }
+
+    list.innerHTML = pageItems.map(impuesto => `
+      <article class="tax-rate-row ${impuesto.EsPredeterminado ? "is-default" : ""}">
+        <div>
+          <strong>${escapeHtml(impuesto.Nombre)}</strong>
+          <span>${impuesto.EsPredeterminado ? "Predeterminado" : "Disponible para asignar"} · ${impuesto.Porcentaje === 0 ? "sin impuesto" : "precio final incluido"}</span>
+        </div>
+        <b>${this.formatTaxPercent(impuesto.Porcentaje)}</b>
+        <em class="${impuesto.Activo ? "is-active" : "is-inactive"}">${impuesto.Activo ? "Activo" : "Inactivo"}</em>
+        <button class="tax-rate-action" type="button" data-tax-action="edit" data-id="${impuesto.Id}" aria-label="Editar ${escapeHtml(impuesto.Nombre)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
+      </article>
+    `).join("");
+
+    this.renderTaxRatesPagination();
+  },
+
+  renderTaxRatesPagination() {
+    const pagination = document.getElementById("taxRatesPagination");
+    if (!pagination) return;
+
+    const page = this.state.impuestosListPage || this.createEmptyPage(5);
+    const pageIndex = page.PageIndex || 1;
+    const totalPages = page.TotalPages || 0;
+    pagination.innerHTML = totalPages > 1
+      ? `
+        <button class="btn btn-secondary" type="button" data-tax-page="prev" ${pageIndex <= 1 ? "disabled" : ""}>Anterior</button>
+        <span>Página ${pageIndex} de ${totalPages}</span>
+        <button class="btn btn-secondary" type="button" data-tax-page="next" ${pageIndex >= totalPages ? "disabled" : ""}>Siguiente</button>
+      `
+      : "";
+
+    pagination.querySelectorAll("[data-tax-page]").forEach(button => {
+      button.addEventListener("click", async () => {
+        this.state.impuestosListPage.PageIndex += button.dataset.taxPage === "next" ? 1 : -1;
+        await this.loadImpuestosListPage();
+        this.renderTaxRatesList();
+        this.bindTaxSettingsActions();
+      });
+    });
+  },
+
+  syncTaxRatesStatusFilter() {
+    const filter = document.getElementById("taxRatesStatusFilter");
+    if (!filter) return;
+
+    filter.value = this.state.impuestosEstado || "activos";
+    this.enhanceCustomSelects?.(filter.parentElement || document);
+  },
+
+  renderTaxSimulation(impuesto) {
+    const preview = document.getElementById("taxSimulationPreview");
+    if (!preview) return;
+
+    const total = 1000;
+    const percent = Number(impuesto?.Porcentaje || 0);
+    const net = percent > 0 ? total / (1 + percent / 100) : total;
+    const taxAmount = total - net;
+    const taxName = impuesto?.Nombre || "Impuesto";
+
+    preview.innerHTML = `
+      <div><span>Precio final</span><strong>${formatMoney(total)}</strong></div>
+      <div><span>Neto gravado</span><strong>${formatMoney(net)}</strong></div>
+      <div><span>${escapeHtml(taxName)} ${this.formatTaxPercent(percent)}</span><strong>${formatMoney(taxAmount)}</strong></div>
+      <hr>
+      <div class="tax-ticket-total"><span>Total</span><strong>${formatMoney(total)}</strong></div>
+      <small>El total no cambia porque el impuesto está incluido.</small>
+    `;
+  },
+
+  renderTaxCategoryPreview() {
+    const list = document.getElementById("taxCategoryList");
+    const moreText = document.getElementById("taxCategoryMoreText");
+    if (!list) return;
+
+    const defaultTax = this.state.impuestosResumen?.Predeterminado || this.state.impuestos.find(impuesto => impuesto.EsPredeterminado);
+    const categorias = (this.state.categoriasProducto || []).slice(0, 4);
+    const remaining = Math.max(0, (this.state.categoriasProducto || []).length - categorias.length);
+
+    if (!categorias.length) {
+      list.innerHTML = `<div><span>Categorías</span><strong>${defaultTax ? this.formatTaxLabel(defaultTax) : "Sin tasa"}</strong></div>`;
+      if (moreText) moreText.textContent = "";
+      return;
+    }
+
+    list.innerHTML = categorias.map(categoria => `
+      <div>
+        <span>${escapeHtml(categoria.Nombre)}</span>
+        <strong>${escapeHtml(this.getCategoryTaxLabel(categoria, defaultTax))}</strong>
+      </div>
+    `).join("");
+    if (moreText) {
+      moreText.textContent = remaining ? `+ ${remaining} categoría${remaining === 1 ? "" : "s"} más` : "";
+    }
+  },
+
+  getCategoryTaxLabel(categoria, defaultTax = null) {
+    const impuesto = this.state.impuestos.find(item => item.Id === categoria.ImpuestoId);
+    if (impuesto) {
+      return this.formatTaxLabel(impuesto);
+    }
+
+    return "Predeterminada";
+  },
+
+  bindTaxCategoryActions() {
+    const button = document.getElementById("taxCategoryManageButton");
+    if (!button || button.dataset.taxCategoryBound === "true") return;
+
+    button.addEventListener("click", () => this.openTaxCategoryAssignmentsModal());
+    button.dataset.taxCategoryBound = "true";
+  },
+
+  openTaxCategoryAssignmentsModal() {
+    const defaultTax = this.state.impuestosResumen?.Predeterminado || this.state.impuestos.find(impuesto => impuesto.EsPredeterminado);
+    const taxOptions = [
+      `<option value="">Predeterminada${defaultTax ? ` (${escapeHtml(this.formatTaxLabel(defaultTax))})` : ""}</option>`,
+      ...this.state.impuestos
+        .filter(impuesto => impuesto.Activo !== false)
+        .map(impuesto => `<option value="${impuesto.Id}">${escapeHtml(this.formatTaxLabel(impuesto))}</option>`)
+    ].join("");
+
+    this.els.modalEyebrow.textContent = "Impuestos";
+    this.els.modalTitle.textContent = "Asignación por categoría";
+    this.els.modalForm.noValidate = true;
+    this.els.modalForm.innerHTML = `
+      <div class="tax-category-modal-intro">
+        <p>Definí qué tasa usa cada categoría. Los productos sin tasa propia tomarán esta configuración.</p>
+      </div>
+      <div class="tax-category-assignment-list">
+        ${(this.state.categoriasProducto || []).map(categoria => `
+          <label class="tax-category-assignment-row">
+            <span>${escapeHtml(categoria.Nombre)}</span>
+            <select name="categoria-${categoria.Id}" data-category-tax-select data-category-id="${categoria.Id}" data-original-value="${categoria.ImpuestoId ?? ""}">
+              ${taxOptions}
+            </select>
+          </label>
+        `).join("") || `<div class="tax-category-empty">No hay categorías cargadas.</div>`}
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" data-role="modal-cancel">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Guardar asignaciones</button>
+      </div>
+    `;
+
+    this.els.modalForm.querySelectorAll("[data-category-tax-select]").forEach(select => {
+      const categoria = this.state.categoriasProducto.find(item => String(item.Id) === select.dataset.categoryId);
+      select.value = categoria?.ImpuestoId ?? "";
+    });
+    this.els.modalRoot.querySelector(".modal-card")?.classList.add("tax-category-modal");
+    this.els.modalForm.querySelector("[data-role='modal-cancel']").addEventListener("click", () => this.closeModal());
+    this.els.modalForm.onsubmit = async event => {
+      event.preventDefault();
+      await this.submitTaxCategoryAssignments();
+    };
+    this.els.modalRoot.classList.remove("hidden");
+    this.enhanceCustomSelects?.(this.els.modalForm);
+  },
+
+  async submitTaxCategoryAssignments() {
+    const submitButton = this.els.modalForm.querySelector("button[type='submit']");
+    const changes = Array.from(this.els.modalForm.querySelectorAll("[data-category-tax-select]"))
+      .map(select => {
+        const categoria = this.state.categoriasProducto.find(item => String(item.Id) === select.dataset.categoryId);
+        const nextValue = select.value ? Number(select.value) : null;
+        const currentValue = categoria?.ImpuestoId ?? null;
+        return { categoria, nextValue, currentValue };
+      })
+      .filter(item => item.categoria && item.nextValue !== item.currentValue);
+
+    if (!changes.length) {
+      this.toast("No hay cambios para guardar.", "info");
+      this.closeModal();
+      return;
+    }
+
+    setButtonLoading(submitButton, true, "Guardando...");
+
+    try {
+      await Promise.all(changes.map(({ categoria, nextValue }) => this.api.request(`${API_ENDPOINTS.categoriasProducto}/${categoria.Id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          Nombre: categoria.Nombre,
+          Icono: categoria.Icono,
+          Color: categoria.Color,
+          ImpuestoId: nextValue
+        })
+      })));
+
+      this.toast("Asignaciones guardadas.", "success");
+      this.closeModal();
+      await Promise.all([this.loadCategoriasProducto(), this.loadProductos(), this.loadImpuestos()]);
+      this.renderTaxSummary();
+      this.renderTaxCategoryPreview();
+      this.renderProductosTable();
+      this.renderProductosVenta();
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      setButtonLoading(submitButton, false, "Guardar asignaciones");
+    }
+  },
+
+  bindTaxSettingsActions() {
+    const select = document.getElementById("taxDefaultSelect");
+    if (select && select.dataset.taxBound !== "true") {
+      select.addEventListener("change", () => {
+        const selectedTax = this.state.impuestos.find(impuesto => String(impuesto.Id) === select.value);
+        this.renderTaxSimulation(selectedTax);
+        this.updateTicketTaxPreviewRows();
+      });
+      select.dataset.taxBound = "true";
+    }
+
+    const newRateButton = document.querySelector(".taxes-new-rate-btn");
+    if (newRateButton && newRateButton.dataset.taxBound !== "true") {
+      newRateButton.addEventListener("click", () => this.openTaxRateModal());
+      newRateButton.dataset.taxBound = "true";
+    }
+
+    const statusFilter = document.getElementById("taxRatesStatusFilter");
+    if (statusFilter && statusFilter.dataset.taxBound !== "true") {
+      statusFilter.addEventListener("change", async () => {
+        this.state.impuestosEstado = statusFilter.value || "activos";
+        this.state.impuestosListPage.PageIndex = 1;
+        await this.loadImpuestosListPage();
+        this.renderTaxRatesList();
+        this.bindTaxSettingsActions();
+      });
+      statusFilter.dataset.taxBound = "true";
+    }
+
+    document.querySelectorAll("[data-tax-action='edit']").forEach(button => {
+      if (button.dataset.taxBound === "true") return;
+
+      button.addEventListener("click", () => this.openTaxRateModal(Number(button.dataset.id)));
+      button.dataset.taxBound = "true";
+    });
+  },
+
+  openTaxRateModal(id = null) {
+    const impuesto = id ? this.state.impuestos.find(item => item.Id === id) : null;
+    const isEdit = Boolean(impuesto);
+
+    this.els.modalEyebrow.textContent = "Impuestos";
+    this.els.modalTitle.textContent = isEdit ? "Editar tasa" : "Nueva tasa";
+    this.els.modalForm.noValidate = true;
+    this.els.modalForm.innerHTML = `
+      <div class="modal-grid-2 tax-rate-modal-grid">
+        <label class="field field-full">
+          <span>Nombre</span>
+          <input name="Nombre" type="text" maxlength="80" required placeholder="Ej: IVA General" value="${escapeHtml(impuesto?.Nombre || "")}">
+        </label>
+        <label class="field">
+          <span>Porcentaje</span>
+          <input name="Porcentaje" type="number" min="0" max="100" step="0.01" required placeholder="21" value="${impuesto?.Porcentaje ?? ""}">
+        </label>
+        <label class="settings-check tax-rate-modal-check">
+          <input name="Activo" type="checkbox" ${impuesto?.Activo === false ? "" : "checked"}>
+          <span>Tasa activa</span>
+        </label>
+        <label class="settings-check tax-rate-modal-check">
+          <input name="EsPredeterminado" type="checkbox" ${impuesto?.EsPredeterminado ? "checked" : ""}>
+          <span>Usar como predeterminada</span>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" data-role="modal-cancel">Cancelar</button>
+        <button class="btn btn-primary" type="submit">${isEdit ? "Guardar tasa" : "Crear tasa"}</button>
+      </div>
+    `;
+
+    this.els.modalRoot.querySelector(".modal-card")?.classList.add("tax-rate-modal");
+    this.els.modalForm.querySelector("[data-role='modal-cancel']").addEventListener("click", () => this.closeModal());
+    this.els.modalForm.onsubmit = async event => {
+      event.preventDefault();
+      await this.submitTaxRateModal(id);
+    };
+    this.els.modalRoot.classList.remove("hidden");
+    this.els.modalForm.querySelector("[name='Nombre']")?.focus();
+  },
+
+  async submitTaxRateModal(id = null) {
+    const submitButton = this.els.modalForm.querySelector("button[type='submit']");
+    const formData = new FormData(this.els.modalForm);
+    const nombre = String(formData.get("Nombre") || "").trim();
+    const porcentaje = Number(formData.get("Porcentaje"));
+    const activo = formData.get("Activo") === "on";
+    const esPredeterminado = formData.get("EsPredeterminado") === "on";
+
+    if (!nombre) {
+      this.toast("Ingresá el nombre de la tasa.", "error");
+      this.els.modalForm.querySelector("[name='Nombre']")?.focus();
+      return;
+    }
+
+    if (!Number.isFinite(porcentaje) || porcentaje < 0 || porcentaje > 100) {
+      this.toast("El porcentaje debe estar entre 0 y 100.", "error");
+      this.els.modalForm.querySelector("[name='Porcentaje']")?.focus();
+      return;
+    }
+
+    if (!activo && esPredeterminado) {
+      this.toast("La tasa predeterminada debe estar activa.", "error");
+      return;
+    }
+
+    const payload = {
+      Nombre: nombre,
+      Porcentaje: porcentaje,
+      Activo: activo,
+      EsPredeterminado: esPredeterminado
+    };
+
+    setButtonLoading(submitButton, true, "Guardando...");
+
+    try {
+      await this.api.request(id ? `${API_ENDPOINTS.impuestos}/${id}` : API_ENDPOINTS.impuestos, {
+        method: id ? "PUT" : "POST",
+        body: JSON.stringify(payload)
+      });
+
+      this.toast("Tasa guardada correctamente.", "success");
+      this.closeModal();
+      await this.loadImpuestos();
+      this.state.impuestosListPage.PageIndex = 1;
+      await this.loadImpuestosListPage();
+      this.renderTaxSummary();
+      this.renderTaxDefaultSelect();
+      this.renderTaxRatesList();
+      this.renderTaxCategoryPreview();
+      this.bindTaxSettingsActions();
+      this.updateTicketTaxPreviewRows();
+      this.enhanceCustomSelects?.(document.querySelector('[data-settings-panel="impuestos"]') || document);
+    } catch (error) {
+      this.toast(this.getErrorMessage(error), "error");
+    } finally {
+      setButtonLoading(submitButton, false, id ? "Guardar tasa" : "Crear tasa");
+    }
+  },
+
+  updateSelectedDefaultTaxRequest() {
+    const select = document.getElementById("taxDefaultSelect");
+    const selectedTax = this.state.impuestos.find(impuesto => String(impuesto.Id) === select?.value);
+
+    if (!selectedTax || selectedTax.EsPredeterminado) {
+      return null;
+    }
+
+    return this.api.request(`${API_ENDPOINTS.impuestos}/${selectedTax.Id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        Nombre: selectedTax.Nombre,
+        Porcentaje: selectedTax.Porcentaje,
+        Activo: selectedTax.Activo !== false,
+        EsPredeterminado: true
+      })
+    });
+  },
+
+  formatTaxPercent(value) {
+    const number = Number(value || 0);
+    return `${new Intl.NumberFormat("es-AR", { maximumFractionDigits: 2 }).format(number)}%`;
+  },
+
+  formatTaxLabel(impuesto) {
+    return `${impuesto.Nombre} ${this.formatTaxPercent(impuesto.Porcentaje)}`;
   },
 
   bindBackupSettingsActions() {
@@ -597,6 +1091,7 @@ export const peopleSettingsMethods = {
         body: JSON.stringify({ Nombre: nombre || null })
       });
       this.state.lastBackup = backup;
+      this.updateSidebarBackupCard?.();
       this.state.backupsPage = {
         Items: [backup],
         PageIndex: 1,
@@ -638,13 +1133,15 @@ export const peopleSettingsMethods = {
     }
   },
 
-  async loadBackupConfiguration() {
+  async loadBackupConfiguration(options = {}) {
+    const { silent = false } = options;
     try {
       const config = await this.api.request(API_ENDPOINTS.respaldosConfiguracion);
       this.state.backupConfiguration = config;
       this.renderBackupConfiguration(config);
     } catch (error) {
-      this.toast(this.getErrorMessage(error), "error");
+      this.updateSidebarBackupCard?.();
+      if (!silent) this.toast(this.getErrorMessage(error), "error");
     }
   },
 
@@ -696,6 +1193,7 @@ export const peopleSettingsMethods = {
     }
 
     this.syncBackupPlanControls();
+    this.updateSidebarBackupCard?.();
   },
 
   syncBackupPlanControls() {
@@ -1330,6 +1828,7 @@ export const peopleSettingsMethods = {
       "ImprimirCajeroTicket",
       "ImprimirNumeroTicket",
       "ImprimirMedioPagoTicket",
+      "ImprimirDesgloseImpuestosTicket",
       "ImprimirSubtotalTotalTicket",
       "ImprimirDescuentoRecargoTicket",
       "ImprimirClienteTicket",
@@ -1403,6 +1902,7 @@ export const peopleSettingsMethods = {
       "ImprimirCajeroTicket",
       "ImprimirNumeroTicket",
       "ImprimirMedioPagoTicket",
+      "ImprimirDesgloseImpuestosTicket",
       "ImprimirSubtotalTotalTicket",
       "ImprimirDescuentoRecargoTicket",
       "ImprimirClienteTicket",
@@ -1481,6 +1981,7 @@ export const peopleSettingsMethods = {
       ImprimirCajeroTicket: this.getFormCheckboxValue(form, "ImprimirCajeroTicket"),
       ImprimirNumeroTicket: this.getFormCheckboxValue(form, "ImprimirNumeroTicket"),
       ImprimirMedioPagoTicket: this.getFormCheckboxValue(form, "ImprimirMedioPagoTicket"),
+      ImprimirDesgloseImpuestosTicket: this.getFormCheckboxValue(form, "ImprimirDesgloseImpuestosTicket"),
       ImprimirSubtotalTotalTicket: this.getFormCheckboxValue(form, "ImprimirSubtotalTotalTicket"),
       ImprimirDescuentoRecargoTicket: this.getFormCheckboxValue(form, "ImprimirDescuentoRecargoTicket"),
       ImprimirClienteTicket: this.getFormCheckboxValue(form, "ImprimirClienteTicket"),
@@ -1577,12 +2078,14 @@ export const peopleSettingsMethods = {
     const messageElement = document.getElementById("ticketPreviewMessage");
     const logoElement = document.getElementById("ticketPreviewLogo");
     const fechaElement = document.querySelector('[data-ticket-preview-option="fecha"] strong');
+    this.updateTicketTaxPreviewRows();
     const previewOptions = {
       "datos-negocio": this.getFormCheckboxValue(form, "ImprimirDatosNegocioTicket"),
       fecha: this.getFormCheckboxValue(form, "ImprimirFechaHoraTicket"),
       cajero: this.getFormCheckboxValue(form, "ImprimirCajeroTicket"),
       numero: this.getFormCheckboxValue(form, "ImprimirNumeroTicket"),
       medio: this.getFormCheckboxValue(form, "ImprimirMedioPagoTicket"),
+      impuestos: this.getFormCheckboxValue(form, "ImprimirDesgloseImpuestosTicket"),
       subtotal: this.getFormCheckboxValue(form, "ImprimirSubtotalTotalTicket"),
       total: this.getFormCheckboxValue(form, "ImprimirSubtotalTotalTicket"),
       "descuento-recargo": this.getFormCheckboxValue(form, "ImprimirDescuentoRecargoTicket"),
@@ -1627,8 +2130,29 @@ export const peopleSettingsMethods = {
     });
 
     Object.entries(previewOptions).forEach(([key, visible]) => {
-      document.querySelector(`[data-ticket-preview-option="${key}"]`)?.classList.toggle("hidden", !visible);
+      document.querySelectorAll(`[data-ticket-preview-option="${key}"]`).forEach(element => {
+        element.classList.toggle("hidden", !visible);
+      });
     });
+  },
+
+  updateTicketTaxPreviewRows() {
+    const taxRows = document.querySelectorAll('[data-ticket-preview-option="impuestos"]');
+    if (taxRows.length < 2) return;
+
+    const select = document.getElementById("taxDefaultSelect");
+    const selectedTax = this.state.impuestos.find(impuesto => String(impuesto.Id) === select?.value)
+      || this.state.impuestosResumen?.Predeterminado
+      || this.state.impuestos.find(impuesto => impuesto.EsPredeterminado);
+    const total = 2500;
+    const percent = Number(selectedTax?.Porcentaje || 0);
+    const neto = percent > 0 ? total / (1 + percent / 100) : total;
+    const impuesto = total - neto;
+    const taxName = selectedTax?.Nombre || "Impuesto";
+
+    taxRows[0].querySelector("strong").textContent = formatMoney(neto);
+    taxRows[1].querySelector("span").textContent = `${taxName} ${this.formatTaxPercent(percent)}`;
+    taxRows[1].querySelector("strong").textContent = formatMoney(impuesto);
   },
 
   parseBusinessHours(configuracion = {}) {
@@ -2044,6 +2568,7 @@ export const peopleSettingsMethods = {
       MantenerClienteAlFinalizarVenta: form.MantenerClienteAlFinalizarVenta.checked,
       MostrarStockEnBusquedaProductos: form.MostrarStockEnBusquedaProductos.checked,
       PedirCantidadAlAgregarProducto: form.PedirCantidadAlAgregarProducto.checked,
+      AplicarImpuestosEnVentas: this.getFormCheckboxValue(form, "AplicarImpuestosEnVentas"),
       DescuentoMaximoPermitido: Number(form.DescuentoMaximoPermitido.value || 0),
       RedondeoTotal: form.RedondeoTotal.value || "0.05",
       PedirMotivoCerrarCaja: form.PedirMotivoCerrarCaja.checked,
@@ -2085,6 +2610,11 @@ export const peopleSettingsMethods = {
           method: "PUT",
           body: JSON.stringify(ticketPayload)
         }));
+      }
+
+      const defaultTaxRequest = this.updateSelectedDefaultTaxRequest();
+      if (defaultTaxRequest) {
+        requests.push(defaultTaxRequest);
       }
 
       await Promise.all(requests);

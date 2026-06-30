@@ -90,117 +90,140 @@ export function buildProductosView() {
 export function buildCajaView() {
   return `
     <section id="cajaView" class="view-section hidden">
-      <div class="dashboard-grid">
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <span class="eyebrow">Operación</span>
-              <h3>Caja actual</h3>
-            </div>
+      <div class="caja-page">
+        <section class="caja-title-block">
+          <h3>Cierre de caja</h3>
+          <p>Revisá los totales, ingresá el dinero contado y cerrá tu caja.</p>
+        </section>
+
+        <section class="caja-session-strip" id="cajaActualCard"></section>
+
+        <section class="caja-open-card" id="cajaOpenCard">
+          <div>
+            <span class="eyebrow">Apertura</span>
+            <h4>Abrir caja</h4>
+            <p>Ingresá el monto inicial para empezar a registrar ventas y movimientos.</p>
           </div>
-          <div id="cajaActualCard" class="empty-state compact">Sin caja abierta.</div>
-        </article>
+          <form id="abrirCajaForm" class="caja-open-form" novalidate>
+            <label class="field">
+              <span>Monto inicial</span>
+              <input name="MontoInicial" type="number" min="0" step="1" inputmode="numeric">
+            </label>
+            <button class="btn btn-primary" type="submit">Abrir caja</button>
+          </form>
+        </section>
 
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <span class="eyebrow">Acciones</span>
-              <h3>Gestión de caja</h3>
-            </div>
+        <section class="caja-close-workspace" id="cajaCloseWorkspace">
+          <div class="caja-left-column">
+            <article class="caja-summary-card" id="cajaResumenCard"></article>
+
+            <article class="caja-summary-card" id="cajaMediosPagoCard"></article>
+
+            <article class="caja-summary-card caja-movement-card">
+              <div class="caja-card-head">
+                <span>Movimiento manual</span>
+                <h4>Registrar ingreso o egreso</h4>
+              </div>
+              <form id="movimientoCajaForm" class="caja-action-form caja-movement-form" novalidate>
+                <label class="field">
+                  <span>Tipo</span>
+                  <select name="Tipo" id="movimientoTipoSelect"></select>
+                </label>
+                <label class="field">
+                  <span>Concepto</span>
+                  <input name="Concepto" type="text" placeholder="Ej: gasto insumos">
+                </label>
+                <label class="field">
+                  <span>Monto</span>
+                  <input name="Monto" type="number" min="1" step="1" inputmode="numeric">
+                </label>
+                <button class="btn btn-primary" type="submit">Registrar</button>
+              </form>
+            </article>
           </div>
 
-          <div class="split-forms">
-            <form id="abrirCajaForm" class="stack-form">
-              <h4>Abrir caja</h4>
+          <article class="caja-count-card">
+            <div class="caja-card-head">
+              <span>Conteo de efectivo</span>
+              <h4>Dinero contado</h4>
+              <p>Contá el efectivo que hay en caja y comparalo con el total esperado.</p>
+            </div>
+            <form id="cerrarCajaForm" class="caja-close-form" novalidate>
               <label class="field">
-                <span>Monto inicial</span>
-                <input name="MontoInicial" type="number" min="0" step="0.01" required>
+                <span>Monto contado en efectivo</span>
+                <input name="MontoFinal" type="number" min="0" step="1" inputmode="numeric">
               </label>
-              <button class="btn btn-primary" type="submit">Abrir caja</button>
-            </form>
-
-            <form id="cerrarCajaForm" class="stack-form">
-              <h4>Cerrar caja</h4>
-              <label class="field">
-                <span>Monto final</span>
-                <input name="MontoFinal" type="number" min="0" step="0.01" required>
-              </label>
+              <div class="caja-difference-preview" id="cajaDiferenciaPreview">
+                <div>
+                  <strong>Diferencia</strong>
+                  <small>Ingresá el monto contado para calcularla.</small>
+                </div>
+                <b>$ 0,00</b>
+              </div>
               <label class="field" id="motivoCierreField">
-                <span>Motivo de cierre</span>
-                <textarea name="MotivoCierre" rows="2" maxlength="300" placeholder="Ej: cierre de turno"></textarea>
+                <span>Observación</span>
+                <textarea name="MotivoCierre" rows="4" maxlength="300" placeholder="Escribí una observación sobre el cierre de caja..."></textarea>
               </label>
-              <button class="btn btn-secondary" type="submit">Cerrar caja</button>
+              <div class="caja-close-actions">
+                <button id="printCajaResumenButton" class="btn btn-secondary" type="button">Imprimir resumen</button>
+                <button class="btn btn-danger" type="submit">Cerrar caja</button>
+              </div>
+              <p class="caja-close-note">Se cerrará la caja y no podrá modificarse.</p>
             </form>
+          </article>
+        </section>
+
+        <section class="caja-table-card" id="cajaMovimientosCard">
+          <div class="caja-table-head">
+            <div>
+              <span class="eyebrow">Movimientos del día</span>
+              <h3>Actividad registrada</h3>
+            </div>
+            <button class="btn btn-secondary" type="button">Ver todos</button>
           </div>
-        </article>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <span class="eyebrow">Movimientos</span>
-            <h3>Registro manual y listado</h3>
+          <div class="table-wrap caja-table-wrap">
+            <table class="data-table caja-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Concepto</th>
+                  <th>Monto</th>
+                </tr>
+              </thead>
+              <tbody id="movimientosCajaTableBody"></tbody>
+            </table>
           </div>
-        </div>
+          <div id="movimientosCajaPagination" class="table-pagination"></div>
+        </section>
 
-        <form id="movimientoCajaForm" class="toolbar-row toolbar-form">
-          <label class="field">
-            <span>Tipo</span>
-            <select name="Tipo" id="movimientoTipoSelect"></select>
-          </label>
-          <label class="field grow">
-            <span>Concepto</span>
-            <input name="Concepto" type="text" required placeholder="Ej: gasto insumos">
-          </label>
-          <label class="field">
-            <span>Monto</span>
-            <input name="Monto" type="number" min="0" step="0.01" required>
-          </label>
-          <button class="btn btn-primary align-end" type="submit">Registrar</button>
-        </form>
-
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Concepto</th>
-                <th>Monto</th>
-              </tr>
-            </thead>
-            <tbody id="movimientosCajaTableBody"></tbody>
-          </table>
-        </div>
-        <div id="movimientosCajaPagination" class="table-pagination"></div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <span class="eyebrow">Historial</span>
-            <h3>Cajas registradas</h3>
+        <section class="caja-table-card caja-history-card hidden" id="cajaHistorialCard">
+          <div class="caja-table-head">
+            <div>
+              <span class="eyebrow">Historial</span>
+              <h3>Cajas registradas</h3>
+            </div>
           </div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Caja</th>
-                <th>Estado</th>
-                <th>Apertura</th>
-                <th>Cierre</th>
-                <th>Inicial</th>
-                <th>Final</th>
-                <th>Esperado</th>
-                <th>Diferencia</th>
-              </tr>
-            </thead>
-            <tbody id="historialCajasTableBody"></tbody>
-          </table>
-        </div>
-        <div id="historialCajasPagination" class="table-pagination"></div>
+          <div class="table-wrap caja-table-wrap">
+            <table class="data-table caja-table">
+              <thead>
+                <tr>
+                  <th>Caja</th>
+                  <th>Estado</th>
+                  <th>Apertura</th>
+                  <th>Cierre</th>
+                  <th>Inicial</th>
+                  <th>Final</th>
+                  <th>Esperado</th>
+                  <th>Diferencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="historialCajasTableBody"></tbody>
+            </table>
+          </div>
+          <div id="historialCajasPagination" class="table-pagination"></div>
+        </section>
       </div>
     </section>
   `;

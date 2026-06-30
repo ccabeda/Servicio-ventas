@@ -16,9 +16,10 @@ public class GetHistorialCajasHandler(IMapper mapper, ICajaRepositoryQuery cajaR
 
         foreach (var cajaDto in cajasDto)
         {
-            cajaDto.SaldoSistema = cajaDto.Abierta
-                ? await cajaRepositoryQuery.GetSaldoSistemaByCajaIdAsync(cajaDto.Id)
-                : (cajaDto.MontoFinal ?? 0) - (cajaDto.Diferencia ?? 0);
+            cajaDto.SaldoSistema = await cajaRepositoryQuery.GetSaldoSistemaByCajaIdAsync(cajaDto.Id);
+            cajaDto.Diferencia = cajaDto.MontoFinal.HasValue
+                ? cajaDto.MontoFinal.Value - cajaDto.SaldoSistema
+                : null;
         }
 
         return cajasDto;
@@ -36,9 +37,10 @@ public class GetHistorialCajasHandler(IMapper mapper, ICajaRepositoryQuery cajaR
 
         foreach (var cajaDto in cajasDto)
         {
-            cajaDto.SaldoSistema = cajaDto.Abierta
-                ? await cajaRepositoryQuery.GetSaldoSistemaByCajaIdAsync(cajaDto.Id)
-                : (cajaDto.MontoFinal ?? 0) - (cajaDto.Diferencia ?? 0);
+            cajaDto.SaldoSistema = await cajaRepositoryQuery.GetSaldoSistemaByCajaIdAsync(cajaDto.Id);
+            cajaDto.Diferencia = cajaDto.MontoFinal.HasValue
+                ? cajaDto.MontoFinal.Value - cajaDto.SaldoSistema
+                : null;
         }
 
         return new PagedResultDto<CajaDto>

@@ -10,5 +10,6 @@ public class CreateProductoDto
     public decimal Stock { get; set; }
     public int? CategoriaId { get; set; }
     public int? MarcaId { get; set; }
+    public int? ImpuestoId { get; set; }
     public bool Activo { get; set; } = true;
 }

@@ -14,6 +14,10 @@ public class CategoriaProductoConfiguration : IEntityTypeConfiguration<Categoria
         builder.Property(x => x.Icono).HasMaxLength(50);
         builder.Property(x => x.Color).HasMaxLength(20);
         builder.Property(x => x.Activo).HasDefaultValue(true);
+        builder.HasOne(x => x.Impuesto)
+            .WithMany(x => x.Categorias)
+            .HasForeignKey(x => x.ImpuestoId)
+            .OnDelete(DeleteBehavior.SetNull);
         builder.HasIndex(x => x.Nombre).IsUnique();
 
         builder.HasData(

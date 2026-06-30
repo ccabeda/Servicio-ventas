@@ -151,12 +151,17 @@ namespace ServicioVentas.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("ImpuestoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImpuestoId");
 
                     b.HasIndex("Nombre")
                         .IsUnique();
@@ -257,6 +262,11 @@ namespace ServicioVentas.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AplicarImpuestosEnVentas")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("ColorPrincipal")
                         .IsRequired()
@@ -424,6 +434,11 @@ namespace ServicioVentas.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("ImprimirDesgloseImpuestosTicket")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("ImprimirFechaHoraTicket")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -551,6 +566,76 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.HasIndex("NombreSistema");
 
                     b.ToTable("IMPRESORA", (string)null);
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.Impuesto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("EsPredeterminado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<decimal>("Porcentaje")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EsPredeterminado")
+                        .IsUnique()
+                        .HasFilter("[EsPredeterminado] = 1");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("IMPUESTO", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            EsPredeterminado = true,
+                            FechaCreacion = new DateTime(2026, 6, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "IVA General",
+                            Porcentaje = 21m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            EsPredeterminado = false,
+                            FechaCreacion = new DateTime(2026, 6, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "IVA Reducido",
+                            Porcentaje = 10.5m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            EsPredeterminado = false,
+                            FechaCreacion = new DateTime(2026, 6, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Exento",
+                            Porcentaje = 0m
+                        });
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.MarcaProducto", b =>
@@ -720,6 +805,9 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ImpuestoId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("MarcaId")
                         .HasColumnType("int");
 
@@ -745,6 +833,8 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.HasIndex("CodigoInterno")
                         .IsUnique()
                         .HasFilter("[CodigoInterno] IS NOT NULL");
+
+                    b.HasIndex("ImpuestoId");
 
                     b.HasIndex("MarcaId");
 
@@ -855,6 +945,23 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Property<decimal>("Cantidad")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("ImporteImpuesto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ImporteNeto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ImpuestoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImpuestoNombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<decimal>("ImpuestoPorcentaje")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<decimal>("PrecioUnitario")
                         .HasColumnType("decimal(18,2)");
 
@@ -868,6 +975,8 @@ namespace ServicioVentas.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImpuestoId");
 
                     b.HasIndex("ProductoId");
 
@@ -902,6 +1011,16 @@ namespace ServicioVentas.Infrastructure.Migrations
                     b.Navigation("UsuarioApertura");
 
                     b.Navigation("UsuarioCierre");
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.CategoriaProducto", b =>
+                {
+                    b.HasOne("ServicioVentas.Domain.Models.Impuesto", "Impuesto")
+                        .WithMany("Categorias")
+                        .HasForeignKey("ImpuestoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Impuesto");
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.ConfiguracionTicket", b =>
@@ -959,12 +1078,19 @@ namespace ServicioVentas.Infrastructure.Migrations
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("ServicioVentas.Domain.Models.Impuesto", "Impuesto")
+                        .WithMany("Productos")
+                        .HasForeignKey("ImpuestoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ServicioVentas.Domain.Models.MarcaProducto", "Marca")
                         .WithMany("Productos")
                         .HasForeignKey("MarcaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Categoria");
+
+                    b.Navigation("Impuesto");
 
                     b.Navigation("Marca");
                 });
@@ -1005,6 +1131,11 @@ namespace ServicioVentas.Infrastructure.Migrations
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.VentaDetalle", b =>
                 {
+                    b.HasOne("ServicioVentas.Domain.Models.Impuesto", "Impuesto")
+                        .WithMany()
+                        .HasForeignKey("ImpuestoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ServicioVentas.Domain.Models.Producto", "Producto")
                         .WithMany("VentaDetalles")
                         .HasForeignKey("ProductoId")
@@ -1016,6 +1147,8 @@ namespace ServicioVentas.Infrastructure.Migrations
                         .HasForeignKey("VentaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Impuesto");
 
                     b.Navigation("Producto");
 
@@ -1037,6 +1170,13 @@ namespace ServicioVentas.Infrastructure.Migrations
             modelBuilder.Entity("ServicioVentas.Domain.Models.Cliente", b =>
                 {
                     b.Navigation("Ventas");
+                });
+
+            modelBuilder.Entity("ServicioVentas.Domain.Models.Impuesto", b =>
+                {
+                    b.Navigation("Categorias");
+
+                    b.Navigation("Productos");
                 });
 
             modelBuilder.Entity("ServicioVentas.Domain.Models.MarcaProducto", b =>

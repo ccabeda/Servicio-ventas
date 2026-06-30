@@ -38,10 +38,20 @@ body.theme-dark .auth-form .field > span:first-child {
     border: 1px solid #d8dee8;
     border-radius: 10px;
     background: #f8fafc;
-    padding: 14px 15px;
     color: #09253f;
-    font-weight: 800;
+    font-family: inherit;
+    font-weight: 700;
     transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.field input,
+.field select {
+    min-height: 42px;
+    padding: 0 15px;
+}
+
+.field textarea {
+    padding: 12px 15px;
 }
 
 body.theme-dark .field input,

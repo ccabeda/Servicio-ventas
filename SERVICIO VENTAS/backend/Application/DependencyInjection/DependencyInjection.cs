@@ -16,6 +16,7 @@ public static partial class DependencyInjection
             .AddCajaHandlers()
             .AddClienteHandlers()
             .AddConfiguracionHandlers()
+            .AddImpuestoHandlers()
             .AddMedioPagoHandlers()
             .AddProductoHandlers()
             .AddReporteHandlers()

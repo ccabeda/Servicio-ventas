@@ -19,6 +19,7 @@ public class RespaldoService(
     private static readonly string[] ManifestTables =
     [
         "productos",
+        "impuestos",
         "categorias-producto",
         "marcas-producto",
         "clientes",
@@ -78,7 +79,8 @@ public class RespaldoService(
             Hora = hora,
             DiaSemana = diaSemana,
             DiaMes = diaMes,
-            ProximoRespaldo = GetProximoVencimiento(DateTimeOffset.Now, frecuencia, hora, diaSemana ?? 1, diaMes ?? 1)
+            ProximoRespaldo = GetProximoVencimiento(DateTimeOffset.Now, frecuencia, hora, diaSemana ?? 1, diaMes ?? 1),
+            UltimoRespaldo = GetBackups().FirstOrDefault()
         };
     }
 
@@ -104,6 +106,7 @@ public class RespaldoService(
                 Tablas = ManifestTables
             });
 
+            await AddJsonEntry(archive, "data/impuestos.json", await context.Impuestos.AsNoTracking().ToListAsync());
             await AddJsonEntry(archive, "data/productos.json", await context.Productos.AsNoTracking().ToListAsync());
             await AddJsonEntry(archive, "data/categorias-producto.json", await context.CategoriasProducto.AsNoTracking().ToListAsync());
             await AddJsonEntry(archive, "data/marcas-producto.json", await context.MarcasProducto.AsNoTracking().ToListAsync());
@@ -220,6 +223,7 @@ public class RespaldoService(
         await ValidarManifest(archive);
 
         var usuarios = await ReadJsonEntry<Usuario>(archive, "data/usuarios.json");
+        var impuestos = await ReadJsonEntry<Impuesto>(archive, "data/impuestos.json");
         var categorias = await ReadJsonEntry<CategoriaProducto>(archive, "data/categorias-producto.json");
         var marcas = await ReadJsonEntry<MarcaProducto>(archive, "data/marcas-producto.json");
         var clientes = await ReadJsonEntry<Cliente>(archive, "data/clientes.json");
@@ -241,6 +245,7 @@ public class RespaldoService(
         await LimpiarDatosAsync();
 
         await AddWithIdentityInsert("USUARIO", usuarios);
+        await AddWithIdentityInsert("IMPUESTO", impuestos);
         await AddWithIdentityInsert("CATEGORIA_PRODUCTO", categorias);
         await AddWithIdentityInsert("MARCA_PRODUCTO", marcas);
         await AddWithIdentityInsert("CLIENTE", clientes);
@@ -312,6 +317,7 @@ public class RespaldoService(
         context.MarcasProducto.RemoveRange(await context.MarcasProducto.ToListAsync());
         context.Clientes.RemoveRange(await context.Clientes.ToListAsync());
         context.MediosPago.RemoveRange(await context.MediosPago.ToListAsync());
+        context.Impuestos.RemoveRange(await context.Impuestos.ToListAsync());
         context.ConfiguracionesNegocio.RemoveRange(await context.ConfiguracionesNegocio.ToListAsync());
         context.Usuarios.RemoveRange(await context.Usuarios.ToListAsync());
 
@@ -449,7 +455,8 @@ public class RespaldoService(
             Hora = hora,
             DiaSemana = diaSemana,
             DiaMes = diaMes,
-            ProximoRespaldo = GetProximoVencimiento(DateTimeOffset.Now, frecuencia, hora, diaSemana ?? 1, diaMes ?? 1)
+            ProximoRespaldo = GetProximoVencimiento(DateTimeOffset.Now, frecuencia, hora, diaSemana ?? 1, diaMes ?? 1),
+            UltimoRespaldo = GetBackups().FirstOrDefault()
         };
     }
 

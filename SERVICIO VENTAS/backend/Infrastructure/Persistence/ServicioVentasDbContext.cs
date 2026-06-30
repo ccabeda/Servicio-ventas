@@ -16,6 +16,7 @@ public class ServicioVentasDbContext(DbContextOptions<ServicioVentasDbContext> o
     public DbSet<MovimientoCaja> MovimientosCaja => Set<MovimientoCaja>();
     public DbSet<MovimientoStock> MovimientosStock => Set<MovimientoStock>();
     public DbSet<MedioPago> MediosPago => Set<MedioPago>();
+    public DbSet<Impuesto> Impuestos => Set<Impuesto>();
     public DbSet<ConfiguracionNegocio> ConfiguracionesNegocio => Set<ConfiguracionNegocio>();
     public DbSet<ConfiguracionTicket> ConfiguracionesTicket => Set<ConfiguracionTicket>();
     public DbSet<Impresora> Impresoras => Set<Impresora>();

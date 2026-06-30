@@ -32,12 +32,37 @@ public class CreateVentaHandlerTests
         Assert.Equal(200, result.Total);
         Assert.Equal(3, context.Producto.Stock);
         Assert.Single(context.VentaRepo.Ventas);
+        var detalle = Assert.Single(context.VentaRepo.Ventas[0].Detalles);
+        Assert.Equal("IVA General", detalle.ImpuestoNombre);
+        Assert.Equal(21, detalle.ImpuestoPorcentaje);
+        Assert.Equal(165.29m, detalle.ImporteNeto);
+        Assert.Equal(34.71m, detalle.ImporteImpuesto);
         Assert.Single(context.VentaRepo.Movimientos);
         var movimientoStock = Assert.Single(context.MovimientoStockRepo.Movimientos);
         Assert.Equal(TipoMovimientoStock.Venta, movimientoStock.Tipo);
         Assert.Equal(5, movimientoStock.StockAnterior);
         Assert.Equal(3, movimientoStock.StockNuevo);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
+    }
+
+    [Fact]
+    public async Task Handle_ImpuestosDesactivados_RegistraDetalleSinImpuesto()
+    {
+        var context = CreateContext(new ConfiguracionNegocio
+        {
+            DescuentoMaximoPermitido = 20,
+            RedondeoTotal = "0",
+            AplicarImpuestosEnVentas = false
+        });
+
+        await context.Handler.Handle(CreateCommand());
+
+        var detalle = Assert.Single(context.VentaRepo.Ventas[0].Detalles);
+        Assert.Null(detalle.ImpuestoId);
+        Assert.Equal("Sin impuesto", detalle.ImpuestoNombre);
+        Assert.Equal(0, detalle.ImpuestoPorcentaje);
+        Assert.Equal(200, detalle.ImporteNeto);
+        Assert.Equal(0, detalle.ImporteImpuesto);
     }
 
     private static CreateVentaCommand CreateCommand() => new()
@@ -50,7 +75,7 @@ public class CreateVentaHandlerTests
         }
     };
 
-    private static VentaTestContext CreateContext()
+    private static VentaTestContext CreateContext(ConfiguracionNegocio? configuracion = null)
     {
         var productoRepo = new FakeProductoRepository();
         var producto = new Producto { Id = 1, Nombre = "Alfajor", Precio = 100, Stock = 5, Activo = true };
@@ -76,8 +101,9 @@ public class CreateVentaHandlerTests
             productoRepo,
             movimientoStockRepo,
             medioPagoRepo,
+            new FakeImpuestoRepository(),
             new FakeClienteRepository(),
-            new FakeConfiguracionNegocioRepository { Principal = new ConfiguracionNegocio { DescuentoMaximoPermitido = 20, RedondeoTotal = "0" } },
+            new FakeConfiguracionNegocioRepository { Principal = configuracion ?? new ConfiguracionNegocio { DescuentoMaximoPermitido = 20, RedondeoTotal = "0" } },
             new TestClock(new DateTime(2026, 6, 16, 12, 0, 0, DateTimeKind.Utc)),
             new FakeAuditoriaService(),
             NullLogger<CreateVentaHandler>.Instance,

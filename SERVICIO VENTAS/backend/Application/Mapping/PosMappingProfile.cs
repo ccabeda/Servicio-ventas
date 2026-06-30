@@ -3,6 +3,7 @@ using ServicioVentas.Application.DTOs.Auditoria;
 using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.DTOs.Clientes;
 using ServicioVentas.Application.DTOs.Configuraciones;
+using ServicioVentas.Application.DTOs.Impuestos;
 using ServicioVentas.Application.DTOs.MediosPago;
 using ServicioVentas.Application.DTOs.Productos;
 using ServicioVentas.Application.DTOs.Usuarios;
@@ -17,7 +18,9 @@ public class PosMappingProfile : Profile
     {
         CreateMap<Producto, ProductoDto>()
             .ForMember(dest => dest.Categoria, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : null))
-            .ForMember(dest => dest.Marca, opt => opt.MapFrom(src => src.Marca != null ? src.Marca.Nombre : null));
+            .ForMember(dest => dest.Marca, opt => opt.MapFrom(src => src.Marca != null ? src.Marca.Nombre : null))
+            .ForMember(dest => dest.ImpuestoNombre, opt => opt.MapFrom(src => src.Impuesto != null ? src.Impuesto.Nombre : null))
+            .ForMember(dest => dest.ImpuestoPorcentaje, opt => opt.MapFrom(src => src.Impuesto != null ? src.Impuesto.Porcentaje : (decimal?)null));
         CreateMap<CreateProductoDto, Producto>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre.Trim()))
             .ForMember(dest => dest.CodigoBarra, opt => opt.MapFrom(src => Normalize(src.CodigoBarra)))
@@ -42,6 +45,12 @@ public class PosMappingProfile : Profile
         CreateMap<CreateMedioPagoDto, MedioPago>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre.Trim()));
         CreateMap<UpdateMedioPagoDto, MedioPago>()
+            .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre.Trim()));
+
+        CreateMap<Impuesto, ImpuestoDto>();
+        CreateMap<CreateImpuestoDto, Impuesto>()
+            .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre.Trim()));
+        CreateMap<UpdateImpuestoDto, Impuesto>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre.Trim()));
 
         CreateMap<CategoriaProducto, CategoriaProductoDto>();

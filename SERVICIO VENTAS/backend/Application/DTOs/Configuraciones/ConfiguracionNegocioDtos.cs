@@ -16,6 +16,7 @@ public class ConfiguracionNegocioDto
     public bool MantenerClienteAlFinalizarVenta { get; set; } = true;
     public bool MostrarStockEnBusquedaProductos { get; set; } = true;
     public bool PedirCantidadAlAgregarProducto { get; set; }
+    public bool AplicarImpuestosEnVentas { get; set; } = true;
     public decimal DescuentoMaximoPermitido { get; set; } = 20;
     public string RedondeoTotal { get; set; } = "0.05";
     public bool PedirMotivoCerrarCaja { get; set; } = true;
@@ -42,6 +43,7 @@ public class CreateConfiguracionNegocioDto
     public bool MantenerClienteAlFinalizarVenta { get; set; } = true;
     public bool MostrarStockEnBusquedaProductos { get; set; } = true;
     public bool PedirCantidadAlAgregarProducto { get; set; }
+    public bool AplicarImpuestosEnVentas { get; set; } = true;
     public decimal DescuentoMaximoPermitido { get; set; } = 20;
     public string RedondeoTotal { get; set; } = "0.05";
     public bool PedirMotivoCerrarCaja { get; set; } = true;
@@ -68,6 +70,7 @@ public class UpdateConfiguracionNegocioDto
     public bool MantenerClienteAlFinalizarVenta { get; set; } = true;
     public bool MostrarStockEnBusquedaProductos { get; set; } = true;
     public bool PedirCantidadAlAgregarProducto { get; set; }
+    public bool AplicarImpuestosEnVentas { get; set; } = true;
     public decimal DescuentoMaximoPermitido { get; set; } = 20;
     public string RedondeoTotal { get; set; } = "0.05";
     public bool PedirMotivoCerrarCaja { get; set; } = true;

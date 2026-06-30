@@ -1,3 +1,4 @@
+using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IRepository.ICommand;
 using ServicioVentas.Application.IRepository.IQuery;
 using ServicioVentas.Domain.Models;
@@ -71,6 +72,7 @@ internal sealed class FakeCajaRepository : ICajaRepositoryQuery, ICajaRepository
     public Caja? CajaAbierta { get; set; }
     public List<Caja> Cajas { get; } = [];
     public List<MovimientoCaja> Movimientos { get; } = [];
+    public List<CajaMedioPagoResumenDto> VentasPorMedioPago { get; } = [];
     public decimal SaldoSistema { get; set; }
 
     public Task AddCajaAsync(Caja caja)
@@ -124,6 +126,8 @@ internal sealed class FakeCajaRepository : ICajaRepositoryQuery, ICajaRepository
     }
 
     public Task<decimal> GetSaldoSistemaByCajaIdAsync(int cajaId) => Task.FromResult(SaldoSistema);
+
+    public Task<List<CajaMedioPagoResumenDto>> GetVentasPorMedioPagoByCajaIdAsync(int cajaId) => Task.FromResult(VentasPorMedioPago);
 }
 
 internal sealed class FakeVentaRepository : IVentaRepositoryCommand
@@ -154,6 +158,23 @@ internal sealed class FakeMedioPagoRepository : IMedioPagoRepositoryQuery
     public Task<MedioPago?> GetByNombreAsync(string nombre) => Task.FromResult(MediosPago.FirstOrDefault(x => x.Nombre == nombre));
     public Task<bool> ExistsByNombreAsync(string nombre, int? excludeId = null) => Task.FromResult(MediosPago.Any(x => x.Nombre == nombre && x.Id != excludeId));
     public Task<int> CountActivosAsync() => Task.FromResult(MediosPago.Count(x => x.Activo));
+}
+
+internal sealed class FakeImpuestoRepository : IImpuestoRepositoryQuery
+{
+    public List<Impuesto> Impuestos { get; } =
+    [
+        new Impuesto { Id = 1, Nombre = "IVA General", Porcentaje = 21, Activo = true, EsPredeterminado = true }
+    ];
+
+    public Task<List<Impuesto>> GetAllAsync() => Task.FromResult(Impuestos.Where(x => x.Activo).ToList());
+    public Task<(List<Impuesto> Items, int TotalItems)> GetPagedAsync(int pageIndex, int pageSize, string? search, string estado) => Task.FromResult((Impuestos, Impuestos.Count));
+    public Task<Impuesto?> GetByIdAsync(int id) => Task.FromResult(Impuestos.FirstOrDefault(x => x.Id == id));
+    public Task<Impuesto?> GetByNombreAsync(string nombre) => Task.FromResult(Impuestos.FirstOrDefault(x => x.Nombre == nombre));
+    public Task<Impuesto?> GetPredeterminadoAsync() => Task.FromResult(Impuestos.FirstOrDefault(x => x.EsPredeterminado));
+    public Task<bool> ExistsByNombreAsync(string nombre, int? excludeId = null) => Task.FromResult(Impuestos.Any(x => x.Nombre == nombre && x.Id != excludeId));
+    public Task<int> CountActivosAsync() => Task.FromResult(Impuestos.Count(x => x.Activo));
+    public Task<int> CountProductosSinTasaAsync() => Task.FromResult(0);
 }
 
 internal sealed class FakeClienteRepository : IClienteRepositoryQuery

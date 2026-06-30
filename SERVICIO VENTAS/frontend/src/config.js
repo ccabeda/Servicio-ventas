@@ -71,13 +71,18 @@ export const API_ENDPOINTS = {
   usuariosPaginado: "/api/usuarios/paginado",
   mediosPago: "/api/mediospago",
   mediosPagoPaginado: "/api/mediospago/paginado",
+  ventas: "/api/ventas",
   ventasPaginado: "/api/ventas/paginado",
   cajaActual: "/api/cajas/actual",
+  cajaResumen: id => `/api/cajas/${id}/resumen`,
   cajasPaginado: "/api/cajas/paginado",
   configuracionesNegocio: "/api/configuracionesnegocio",
   configuracionNegocioLogo: id => `/api/configuracionesnegocio/${id}/logo`,
   configuracionTicketPrincipal: "/api/configuracionesticket/principal",
   configuracionesTicket: "/api/configuracionesticket",
+  impuestos: "/api/impuestos",
+  impuestosPaginado: "/api/impuestos/paginado",
+  impuestosResumen: "/api/impuestos/resumen",
   impresoras: "/api/impresoras",
   respaldosConfiguracion: "/api/respaldos/configuracion",
   respaldosPaginado: "/api/respaldos/paginado",
@@ -85,6 +90,7 @@ export const API_ENDPOINTS = {
   respaldosRestaurar: "/api/respaldos/restaurar",
   reportesResumenVentas: "/api/reportes/resumen-ventas",
   reportesVentas: "/api/reportes/ventas",
+  reportesVentasPaginado: "/api/reportes/ventas/paginado",
   reportesProductosMasVendidos: "/api/reportes/productos-mas-vendidos"
 };
 

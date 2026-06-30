@@ -11,7 +11,7 @@ export function buildConfiguracionView() {
           <button class="active" type="button" data-settings-tab="negocio">Datos del negocio</button>
           <button type="button" data-settings-tab="ticket">Ticket</button>
           <button type="button" data-settings-tab="impresoras">Impresoras</button>
-          <button type="button">Impuestos</button>
+          <button type="button" data-settings-tab="impuestos">Impuestos</button>
           <button type="button" data-settings-tab="usuarios">Usuarios</button>
           <button type="button" data-settings-tab="preferencias">Preferencias</button>
           <button type="button" data-settings-tab="respaldo">Respaldo</button>
@@ -244,6 +244,14 @@ export function buildConfiguracionView() {
                       <span>Subtotal</span>
                       <strong>$ 2.500,00</strong>
                     </div>
+                    <div class="ticket-preview-row muted" data-ticket-preview-option="impuestos">
+                      <span>Neto gravado</span>
+                      <strong>$ 2.066,12</strong>
+                    </div>
+                    <div class="ticket-preview-row muted" data-ticket-preview-option="impuestos">
+                      <span>IVA 21%</span>
+                      <strong>$ 433,88</strong>
+                    </div>
                     <div class="ticket-preview-total" data-ticket-preview-option="total">
                       <span>Total</span>
                       <strong>$ 2.500,00</strong>
@@ -307,6 +315,142 @@ export function buildConfiguracionView() {
                 </div>
               </div>
               <div id="settingsPrinterDetail" class="printer-detail"></div>
+            </aside>
+          </div>
+
+          <div id="settingsTaxesPanel" class="taxes-settings-page hidden" data-settings-panel="impuestos">
+            <section class="settings-card taxes-main-card">
+              <div class="settings-card-head taxes-card-head">
+                <span class="settings-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16" /><path d="M8 17V9" /><path d="M12 17V5" /><path d="M16 17v-6" /><path d="M6 9h4" /><path d="M10 5h4" /><path d="M14 11h4" /></svg></span>
+                <div>
+                  <h4>Panel fiscal</h4>
+                  <p>Controla tasas, cálculo y visualización fiscal de las ventas.</p>
+                </div>
+              </div>
+
+              <div class="taxes-status-grid">
+                <article class="taxes-status-card is-primary">
+                  <span>Impuesto predeterminado</span>
+                  <strong id="taxDefaultSummary">Cargando...</strong>
+                  <small>Aplicado si el producto o categoría no define otra tasa.</small>
+                </article>
+                <article class="taxes-status-card">
+                  <span>Tasas activas</span>
+                  <strong id="taxActiveSummary">-</strong>
+                  <small>Disponibles para ventas y asignaciones.</small>
+                </article>
+                <article class="taxes-status-card">
+                  <span>Usan predeterminada</span>
+                  <strong id="taxProductsWithoutRateSummary">-</strong>
+                  <small>Sin tasa propia ni tasa configurada en su categoría.</small>
+                </article>
+              </div>
+
+              <div class="taxes-rules-panel">
+                <div class="taxes-rules-copy">
+                  <span class="taxes-eyebrow">Criterios de cálculo</span>
+                  <h5>Precios finales con impuesto incluido</h5>
+                  <p>El sistema conserva el total visible al cliente y calcula el neto fiscal desde ese importe.</p>
+                </div>
+                <div class="taxes-control-grid">
+                  <label class="taxes-toggle-card">
+                    <input name="AplicarImpuestosEnVentas" type="checkbox" checked>
+                    <span>
+                      <strong>Aplicar impuestos en ventas</strong>
+                      <small>Cálculo automático al confirmar.</small>
+                    </span>
+                  </label>
+                  <label class="taxes-toggle-card">
+                    <input name="ImprimirDesgloseImpuestosTicket" data-ticket-field="ImprimirDesgloseImpuestosTicket" type="checkbox" checked>
+                    <span>
+                      <strong>Mostrar desglose en ticket</strong>
+                      <small>Visible en comprobantes.</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="taxes-settings-grid">
+                <label class="field">
+                  <span>Impuesto predeterminado</span>
+                  <select id="taxDefaultSelect">
+                    <option value="">Cargando impuestos...</option>
+                  </select>
+                </label>
+                <div class="field tax-fixed-field">
+                  <span>Redondeo fiscal</span>
+                  <div class="tax-fixed-value">
+                    <strong>2 decimales</strong>
+                    <small>Criterio estándar para importes monetarios y comprobantes.</small>
+                  </div>
+                </div>
+              </div>
+
+              <section class="taxes-table-section">
+                <div class="settings-card-head taxes-inline-head">
+                  <div class="taxes-inline-title">
+                    <h4>Tasas configuradas</h4>
+                    <p>Listado de alícuotas disponibles para ventas y categorías.</p>
+                  </div>
+                  <div class="taxes-inline-actions">
+                    <span id="taxRatesCount">0 activas</span>
+                    <select id="taxRatesStatusFilter" aria-label="Filtrar tasas por estado">
+                      <option value="activos">Activas</option>
+                      <option value="todos">Todas</option>
+                      <option value="inactivos">Inactivas</option>
+                    </select>
+                    <button class="taxes-new-rate-btn" type="button">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+                      Nueva tasa
+                    </button>
+                  </div>
+                </div>
+                <div id="taxRatesList" class="taxes-rate-list"></div>
+                <div id="taxRatesPagination" class="tax-rates-pagination"></div>
+              </section>
+            </section>
+
+            <aside class="taxes-side-column">
+              <section class="settings-card taxes-preview-card">
+                <div class="settings-card-head">
+                  <div>
+                    <h4>Simulación fiscal</h4>
+                    <p>Venta ejemplo con precio final de $ 1.000,00.</p>
+                  </div>
+                </div>
+                <div id="taxSimulationPreview" class="tax-ticket-preview">
+                  <div><span>Precio final</span><strong>$ 1.000,00</strong></div>
+                  <div><span>Neto gravado</span><strong>-</strong></div>
+                  <div><span>Impuesto</span><strong>-</strong></div>
+                  <hr>
+                  <div class="tax-ticket-total"><span>Total</span><strong>$ 1.000,00</strong></div>
+                  <small>El total no cambia porque el impuesto está incluido.</small>
+                </div>
+              </section>
+
+              <section class="settings-card taxes-category-card">
+                <div class="settings-card-head">
+                  <div>
+                    <h4>Asignación por categoría</h4>
+                    <p>Aplicación rápida para no configurar producto por producto.</p>
+                  </div>
+                </div>
+                <div id="taxCategoryList" class="tax-category-list"></div>
+                <div class="tax-category-actions">
+                  <span id="taxCategoryMoreText"></span>
+                  <button id="taxCategoryManageButton" class="btn btn-secondary" type="button">Gestionar categorías</button>
+                </div>
+              </section>
+
+              <section class="settings-card taxes-note-card">
+                <div class="settings-card-head">
+                  <span class="settings-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /><path d="M9 12l2 2 4-4" /></svg></span>
+                  <div>
+                    <h4>Criterio recomendado</h4>
+                    <p>Usar IVA 21% como predeterminado y ajustar solo categorías especiales.</p>
+                  </div>
+                </div>
+              </section>
             </aside>
           </div>
 
@@ -724,76 +868,246 @@ export function buildConfiguracionView() {
 export function buildReportesView() {
   return `
     <section id="reportesView" class="view-section hidden">
-      <div class="panel">
-        <div class="panel-header">
+      <div class="reportes-page">
+        <div class="reportes-header">
           <div>
-            <span class="eyebrow">Analítica operativa</span>
             <h3>Reportes</h3>
+            <p>Consulta las ventas y el rendimiento de tu negocio.</p>
           </div>
         </div>
 
-        <form id="reportesFilterForm" class="reportes-toolbar">
-          <div class="reportes-toolbar-group reportes-toolbar-filters">
+        <form id="reportesFilterForm" class="reportes-period-bar">
+          <div class="reportes-period-tabs">
+            <button id="presetTodayButton" class="reportes-period-tab" type="button" data-report-preset="today">Hoy</button>
+            <button id="presetYesterdayButton" class="reportes-period-tab" type="button" data-report-preset="yesterday">Ayer</button>
+            <button id="presetWeekButton" class="reportes-period-tab" type="button" data-report-preset="week">Esta semana</button>
+            <button id="presetMonthButton" class="reportes-period-tab" type="button" data-report-preset="month">Este mes</button>
+            <button class="reportes-period-tab is-custom" type="button" data-report-custom-toggle>
+              Personalizado
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+            </button>
+          </div>
+          <div class="reportes-custom-dates">
             <label class="field">
               <span>Fecha desde</span>
-              <input name="FechaDesde" type="date">
+              <span class="reportes-date-input" data-report-date-picker>
+                <input name="FechaDesde" type="hidden">
+                <button class="reportes-date-trigger" type="button" data-report-date-trigger data-report-date-field="FechaDesde">
+                  <span data-report-date-value>Seleccionar fecha</span>
+                </button>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+              </span>
             </label>
             <label class="field">
               <span>Fecha hasta</span>
-              <input name="FechaHasta" type="date">
+              <span class="reportes-date-input" data-report-date-picker>
+                <input name="FechaHasta" type="hidden">
+                <button class="reportes-date-trigger" type="button" data-report-date-trigger data-report-date-field="FechaHasta">
+                  <span data-report-date-value>Seleccionar fecha</span>
+                </button>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+              </span>
             </label>
             <button class="btn btn-primary reportes-apply-btn" type="submit">Aplicar</button>
           </div>
-
-          <div class="reportes-toolbar-group reportes-toolbar-presets">
-            <span class="label">Atajos</span>
-            <div class="reportes-preset-buttons">
-              <button id="presetTodayButton" class="btn btn-secondary" type="button">Hoy</button>
-              <button id="presetWeekButton" class="btn btn-secondary" type="button">7 días</button>
-              <button id="presetMonthButton" class="btn btn-secondary" type="button">Mes</button>
-            </div>
-          </div>
-
-          <div class="reportes-toolbar-group reportes-toolbar-export">
-            <span class="label">Salida</span>
-            <button id="exportVentasCsvButton" class="btn btn-secondary reportes-export-btn" type="button">Exportar CSV</button>
+          <div class="reportes-header-actions">
+            <button id="exportVentasCsvButton" class="btn btn-secondary reportes-export-btn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+              Exportar CSV
+            </button>
           </div>
         </form>
 
-        <div id="reportesStats" class="stats-grid"></div>
+        <div id="reportesStats" class="reportes-stats-grid"></div>
+
+        <div class="reportes-content-grid">
+          <article class="reportes-card reportes-sales-card">
+            <div class="reportes-card-head">
+              <h4>Ventas recientes</h4>
+            </div>
+            <div class="table-wrap reportes-table-wrap">
+              <table class="data-table reportes-sales-table">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Cajero</th>
+                    <th>Total</th>
+                    <th>Medio de pago</th>
+                  </tr>
+                </thead>
+                <tbody id="reportesVentasTableBody"></tbody>
+              </table>
+            </div>
+            <button class="reportes-card-link" type="button" data-report-action="show-sales-history">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" /></svg>
+              Ver todas las ventas
+            </button>
+          </article>
+
+          <article class="reportes-card reportes-products-card">
+            <div class="reportes-card-head">
+              <h4>Productos más vendidos</h4>
+            </div>
+            <div id="topProductosList" class="reportes-products-list"></div>
+            <button class="reportes-card-link" type="button" data-report-action="show-full-products-ranking">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 16-9 5-9-5" /><path d="m21 12-9 5-9-5" /><path d="m3 8 9-5 9 5-9 5-9-5Z" /></svg>
+              Ver ranking completo
+            </button>
+          </article>
+
+          <aside class="reportes-side-column">
+            <article class="reportes-card reportes-payments-card">
+              <div class="reportes-card-head">
+                <h4>Métodos de pago</h4>
+              </div>
+              <div class="reportes-payments-layout">
+                <div id="reportesPaymentDonut" class="reportes-donut" aria-hidden="true"></div>
+                <div id="reportesPaymentList" class="reportes-payment-list"></div>
+              </div>
+              <div class="reportes-payment-total">
+                <span>Total</span>
+                <strong id="reportesPaymentTotal">$ 0,00</strong>
+              </div>
+            </article>
+
+            <article class="reportes-card reportes-actions-card">
+              <div class="reportes-card-head">
+                <h4>Acciones rápidas</h4>
+              </div>
+              <button class="reportes-action-row" type="button" data-report-action="print-summary">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V4h12v5" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6z" /></svg>
+                <span><strong>Imprimir resumen</strong><small>Imprime un resumen del período</small></span>
+                <b>&gt;</b>
+              </button>
+              <button class="reportes-action-row" type="button" data-report-action="export-summary-csv">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+                <span><strong>Exportar detalle</strong><small>Descarga el detalle de ventas</small></span>
+                <b>&gt;</b>
+              </button>
+            </article>
+          </aside>
+        </div>
+
+        <div class="reportes-info-tip">
+          <span aria-hidden="true">i</span>
+          <p>Los reportes se generan en base a las ventas registradas en la caja seleccionada.</p>
+        </div>
       </div>
 
-      <div class="dashboard-grid">
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <span class="eyebrow">Top ventas</span>
-              <h3>Productos más vendidos</h3>
-            </div>
+      <div id="reportesSalesHistoryView" class="reportes-history-page hidden">
+        <div class="reportes-history-titlebar">
+          <button class="reportes-history-back" type="button" data-report-action="hide-sales-history" aria-label="Volver a reportes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></svg>
+          </button>
+          <div>
+            <h3>Todas las ventas <button type="button" data-report-action="hide-sales-history">← Volver a reportes</button></h3>
+            <p>Consulta el detalle de todas las ventas realizadas.</p>
           </div>
-          <div id="topProductosList" class="ranking-list"></div>
-        </article>
+        </div>
 
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <span class="eyebrow">Últimos movimientos</span>
-              <h3>Ventas del periodo</h3>
+        <div class="reportes-history-filters">
+          <label class="field">
+            <span>Período</span>
+            <button class="reportes-history-filter-button" type="button" data-report-action="toggle-history-dates">
+              <strong id="reportesHistoryPeriodLabel">Periodo seleccionado</strong>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+            </button>
+          </label>
+          <label class="field">
+            <span>Cajero</span>
+            <div class="reportes-history-filter-dropdown" data-report-filter="usuarioId">
+              <button class="reportes-history-filter-button" type="button" data-report-filter-trigger>
+                <strong data-report-filter-label>Todos</strong><b>⌄</b>
+              </button>
+              <div class="reportes-history-filter-menu hidden" data-report-filter-menu></div>
             </div>
+          </label>
+          <label class="field">
+            <span>Medio de pago</span>
+            <div class="reportes-history-filter-dropdown" data-report-filter="medioPagoId">
+              <button class="reportes-history-filter-button" type="button" data-report-filter-trigger>
+                <strong data-report-filter-label>Todos</strong><b>⌄</b>
+              </button>
+              <div class="reportes-history-filter-menu hidden" data-report-filter-menu></div>
+            </div>
+          </label>
+          <button class="reportes-history-filter-button reportes-history-more" type="button" data-report-action="toggle-history-more-filters">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18" /><path d="M6 12h12" /><path d="M10 19h4" /></svg>
+            Más filtros
+          </button>
+          <button class="reportes-history-export" type="button" data-report-action="export-sales-csv">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+            Exportar CSV
+          </button>
+          <div id="reportesHistoryCustomDates" class="reportes-history-custom-dates hidden">
+            <label class="field">
+              <span>Fecha desde</span>
+              <span class="reportes-date-input" data-report-date-picker>
+                <input name="HistoryFechaDesde" type="hidden">
+                <button class="reportes-date-trigger" type="button" data-report-date-trigger data-report-date-field="HistoryFechaDesde">
+                  <span data-report-date-value>Seleccionar fecha</span>
+                </button>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+              </span>
+            </label>
+            <label class="field">
+              <span>Fecha hasta</span>
+              <span class="reportes-date-input" data-report-date-picker>
+                <input name="HistoryFechaHasta" type="hidden">
+                <button class="reportes-date-trigger" type="button" data-report-date-trigger data-report-date-field="HistoryFechaHasta">
+                  <span data-report-date-value>Seleccionar fecha</span>
+                </button>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4" /><path d="M16 2v4" /><path d="M3 10h18" /><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+              </span>
+            </label>
+            <button class="btn btn-primary reportes-apply-btn" type="button" data-report-action="apply-history-dates">Aplicar</button>
           </div>
-          <div class="table-wrap">
-            <table class="data-table">
+          <div id="reportesHistoryMoreFilters" class="reportes-history-custom-dates reportes-history-more-panel hidden">
+            <label class="field">
+              <span>Cliente</span>
+              <div class="reportes-history-filter-dropdown" data-report-filter="clienteId">
+                <button class="reportes-history-filter-button" type="button" data-report-filter-trigger>
+                  <strong data-report-filter-label>Todos</strong><b>⌄</b>
+                </button>
+                <div class="reportes-history-filter-menu hidden" data-report-filter-menu></div>
+              </div>
+            </label>
+            <label class="field">
+              <span>Total mínimo</span>
+              <input name="HistoryTotalMinimo" type="number" min="0" step="0.01" placeholder="$ 0,00">
+            </label>
+            <label class="field">
+              <span>Total máximo</span>
+              <input name="HistoryTotalMaximo" type="number" min="0" step="0.01" placeholder="$ 0,00">
+            </label>
+            <button class="btn btn-primary reportes-apply-btn" type="button" data-report-action="apply-history-more-filters">Aplicar filtros</button>
+            <button class="btn btn-secondary reportes-apply-btn" type="button" data-report-action="clear-history-more-filters">Limpiar</button>
+          </div>
+        </div>
+
+        <div id="reportesHistoryStats" class="reportes-history-stats"></div>
+
+        <article class="reportes-history-table-card">
+          <div class="table-wrap reportes-history-table-wrap">
+            <table class="data-table reportes-history-table">
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Usuario</th>
-                  <th>Medio</th>
-                  <th>Ítems</th>
+                  <th>Hora ↕</th>
+                  <th>N° Ticket</th>
+                  <th>Cajero</th>
                   <th>Total</th>
+                  <th>Ítems</th>
+                  <th>Medio de pago</th>
+                  <th>Cliente (si aplica)</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody id="reportesVentasTableBody"></tbody>
+              <tbody id="reportesHistoryTableBody"></tbody>
             </table>
+          </div>
+          <div class="reportes-history-footer">
+            <span id="reportesHistoryRangeLabel">Mostrando 0 ventas</span>
+            <div id="reportesHistoryPagination" class="table-pagination"></div>
           </div>
         </article>
       </div>

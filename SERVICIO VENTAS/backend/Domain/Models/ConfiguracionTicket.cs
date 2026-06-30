@@ -18,6 +18,7 @@ public class ConfiguracionTicket
     public bool ImprimirCajeroTicket { get; set; } = true;
     public bool ImprimirNumeroTicket { get; set; } = true;
     public bool ImprimirMedioPagoTicket { get; set; } = true;
+    public bool ImprimirDesgloseImpuestosTicket { get; set; } = true;
     public bool ImprimirSubtotalTotalTicket { get; set; } = true;
     public bool ImprimirDescuentoRecargoTicket { get; set; } = true;
     public bool ImprimirClienteTicket { get; set; } = true;

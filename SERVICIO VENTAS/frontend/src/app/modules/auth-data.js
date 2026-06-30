@@ -280,7 +280,11 @@ export const authDataMethods = {
 
   async loadCaja() {
     this.state.cajaActual = await this.api.request(API_ENDPOINTS.cajaActual);
+    this.state.cajaResumen = null;
     await this.loadMovimientosCajaPage();
+    if (this.state.cajaActual?.Id) {
+      this.state.cajaResumen = await this.api.request(API_ENDPOINTS.cajaResumen(this.state.cajaActual.Id));
+    }
 
     if (this.state.cajaActual?.Abierta) {
       this.state.lastClosedCaja = null;
@@ -322,9 +326,39 @@ export const authDataMethods = {
     this.state.configuraciones = configuraciones;
     this.state.configuracionTicket = configuracionTicket;
     await this.loadImpresoras();
+    await this.loadImpuestos();
     setDateFormatPreferences(this.state.configuraciones[0]);
     this.applyBrandColor(this.state.configuraciones[0]?.ColorPrincipal);
     this.applyVisualPreferences();
+  },
+
+  async loadImpuestos() {
+    try {
+      const [impuestos, resumen] = await Promise.all([
+        this.api.request(API_ENDPOINTS.impuestos),
+        this.api.request(API_ENDPOINTS.impuestosResumen)
+      ]);
+
+      this.state.impuestos = impuestos;
+      this.state.impuestosResumen = resumen;
+      this.state.impuestosError = "";
+      await this.loadImpuestosListPage();
+    } catch (error) {
+      this.state.impuestos = [];
+      this.state.impuestosResumen = null;
+      this.state.impuestosListPage = this.createEmptyPage(5);
+      this.state.impuestosError = this.getErrorMessage(error);
+    }
+  },
+
+  async loadImpuestosListPage() {
+    const params = new URLSearchParams({
+      pageIndex: String(this.state.impuestosListPage?.PageIndex || 1),
+      pageSize: String(this.state.impuestosListPage?.PageSize || 5),
+      estado: this.state.impuestosEstado || "activos"
+    });
+
+    this.state.impuestosListPage = await this.api.request(`${API_ENDPOINTS.impuestosPaginado}?${params.toString()}`);
   },
 
   async loadImpresoras() {
@@ -346,5 +380,14 @@ export const authDataMethods = {
     ]);
 
     this.state.reportes = { resumen, ventas, topProductos };
+    await this.loadReportesVentasPage(1);
+  },
+
+  async loadReportesVentasPage(pageIndex = this.state.reportesVentasPage?.PageIndex || 1) {
+    const query = this.buildReportQuery();
+    const separator = query ? "&" : "?";
+    this.state.reportesVentasPage = await this.api.request(
+      `${API_ENDPOINTS.reportesVentasPaginado}${query}${separator}pageIndex=${pageIndex}&pageSize=8`
+    );
   }
 };

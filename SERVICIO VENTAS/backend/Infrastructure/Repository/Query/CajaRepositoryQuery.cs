@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using ServicioVentas.Application.DTOs.Cajas;
 using ServicioVentas.Application.IRepository.IQuery;
+using ServicioVentas.Domain.Enums;
 using ServicioVentas.Domain.Models;
 using ServicioVentas.Infrastructure.Persistence;
 
@@ -84,9 +86,41 @@ public class CajaRepositoryQuery(ServicioVentasDbContext context) : ICajaReposit
 
     public async Task<decimal> GetSaldoSistemaByCajaIdAsync(int cajaId)
     {
-        return await context.MovimientosCaja
+        var montoInicial = await context.Cajas
+            .AsNoTracking()
+            .Where(x => x.Id == cajaId)
+            .Select(x => x.MontoInicial)
+            .FirstOrDefaultAsync();
+
+        var ventasEfectivo = await context.Ventas
+            .AsNoTracking()
+            .Where(x => x.CajaId == cajaId && EF.Functions.Like(x.MedioPago.Nombre, "%Efectivo%"))
+            .SumAsync(x => x.Total);
+
+        var movimientosManuales = await context.MovimientosCaja
+            .AsNoTracking()
+            .Where(x => x.CajaId == cajaId && (x.Tipo == TipoMovimientoCaja.Ingreso || x.Tipo == TipoMovimientoCaja.Egreso))
+            .SumAsync(x => x.Tipo == TipoMovimientoCaja.Egreso ? -x.Monto : x.Monto);
+
+        return montoInicial + ventasEfectivo + movimientosManuales;
+    }
+
+    public async Task<List<CajaMedioPagoResumenDto>> GetVentasPorMedioPagoByCajaIdAsync(int cajaId)
+    {
+        return await context.Ventas
             .AsNoTracking()
             .Where(x => x.CajaId == cajaId)
-            .SumAsync(x => x.Tipo == ServicioVentas.Domain.Enums.TipoMovimientoCaja.Egreso ? -x.Monto : x.Monto);
+            .GroupBy(x => new { x.MedioPagoId, x.MedioPago.Nombre })
+            .Select(group => new CajaMedioPagoResumenDto
+            {
+                MedioPagoId = group.Key.MedioPagoId,
+                MedioPagoNombre = group.Key.Nombre,
+                Total = group.Sum(x => x.Total),
+                CantidadVentas = group.Count(),
+                EsEfectivo = EF.Functions.Like(group.Key.Nombre, "%Efectivo%")
+            })
+            .OrderByDescending(x => x.EsEfectivo)
+            .ThenBy(x => x.MedioPagoNombre)
+            .ToListAsync();
     }
 }

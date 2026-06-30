@@ -17,13 +17,26 @@ public class ReportesController(
     ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet("resumen-ventas")]
-    public async Task<ActionResult<ResumenVentasDto>> GetResumenVentas([FromQuery] DateTime? fechaDesde, [FromQuery] DateTime? fechaHasta)
+    public async Task<ActionResult<ResumenVentasDto>> GetResumenVentas(
+        [FromQuery] DateTime? fechaDesde,
+        [FromQuery] DateTime? fechaHasta,
+        [FromQuery] int? cajaId,
+        [FromQuery] int? usuarioId,
+        [FromQuery] int? medioPagoId,
+        [FromQuery] int? clienteId,
+        [FromQuery] decimal? totalMinimo,
+        [FromQuery] decimal? totalMaximo)
     {
         var reporte = await getResumenVentasHandler.Handle(new GetResumenVentasQuery
         {
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
-            UsuarioId = currentUser.IsAdmin ? null : currentUser.UserId
+            CajaId = cajaId,
+            UsuarioId = currentUser.IsAdmin ? usuarioId : currentUser.UserId,
+            MedioPagoId = medioPagoId,
+            ClienteId = clienteId,
+            TotalMinimo = totalMinimo,
+            TotalMaximo = totalMaximo
         });
 
         return Ok(reporte);
@@ -35,7 +48,10 @@ public class ReportesController(
         [FromQuery] DateTime? fechaHasta,
         [FromQuery] int? cajaId,
         [FromQuery] int? usuarioId,
-        [FromQuery] int? medioPagoId)
+        [FromQuery] int? medioPagoId,
+        [FromQuery] int? clienteId,
+        [FromQuery] decimal? totalMinimo,
+        [FromQuery] decimal? totalMaximo)
     {
         var reporte = await getVentasPorPeriodoHandler.Handle(new GetVentasPorPeriodoQuery
         {
@@ -43,23 +59,65 @@ public class ReportesController(
             FechaHasta = fechaHasta,
             CajaId = cajaId,
             UsuarioId = currentUser.IsAdmin ? usuarioId : currentUser.UserId,
-            MedioPagoId = medioPagoId
+            MedioPagoId = medioPagoId,
+            ClienteId = clienteId,
+            TotalMinimo = totalMinimo,
+            TotalMaximo = totalMaximo
         });
 
         return Ok(reporte);
+    }
+
+    [HttpGet("ventas/paginado")]
+    public async Task<IActionResult> GetVentasPorPeriodoPaginado(
+        [FromQuery] DateTime? fechaDesde,
+        [FromQuery] DateTime? fechaHasta,
+        [FromQuery] int? cajaId,
+        [FromQuery] int? usuarioId,
+        [FromQuery] int? medioPagoId,
+        [FromQuery] int? clienteId,
+        [FromQuery] decimal? totalMinimo,
+        [FromQuery] decimal? totalMaximo,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 8)
+    {
+        return Ok(await getVentasPorPeriodoHandler.HandlePaged(new GetVentasPorPeriodoQuery
+        {
+            FechaDesde = fechaDesde,
+            FechaHasta = fechaHasta,
+            CajaId = cajaId,
+            UsuarioId = currentUser.IsAdmin ? usuarioId : currentUser.UserId,
+            MedioPagoId = medioPagoId,
+            ClienteId = clienteId,
+            TotalMinimo = totalMinimo,
+            TotalMaximo = totalMaximo,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        }));
     }
 
     [HttpGet("productos-mas-vendidos")]
     public async Task<ActionResult<List<ProductoMasVendidoDto>>> GetProductosMasVendidos(
         [FromQuery] DateTime? fechaDesde,
         [FromQuery] DateTime? fechaHasta,
+        [FromQuery] int? cajaId,
+        [FromQuery] int? usuarioId,
+        [FromQuery] int? medioPagoId,
+        [FromQuery] int? clienteId,
+        [FromQuery] decimal? totalMinimo,
+        [FromQuery] decimal? totalMaximo,
         [FromQuery] int top = 10)
     {
         var reporte = await getProductosMasVendidosHandler.Handle(new GetProductosMasVendidosQuery
         {
             FechaDesde = fechaDesde,
             FechaHasta = fechaHasta,
-            UsuarioId = currentUser.IsAdmin ? null : currentUser.UserId,
+            CajaId = cajaId,
+            UsuarioId = currentUser.IsAdmin ? usuarioId : currentUser.UserId,
+            MedioPagoId = medioPagoId,
+            ClienteId = clienteId,
+            TotalMinimo = totalMinimo,
+            TotalMaximo = totalMaximo,
             Top = top
         });
 

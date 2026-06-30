@@ -25,6 +25,7 @@ public class RespaldoConfiguracionDto
     public int? DiaSemana { get; set; }
     public int? DiaMes { get; set; }
     public DateTimeOffset? ProximoRespaldo { get; set; }
+    public RespaldoDto? UltimoRespaldo { get; set; }
 }
 
 public class CrearRespaldoDto

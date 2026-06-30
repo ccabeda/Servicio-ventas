@@ -40,6 +40,10 @@ export const crudModalMethods = {
 
     this.els.modalRoot.classList.remove("hidden");
     this.enhanceCustomSelects?.(this.els.modalForm);
+
+    if (entity === "producto") {
+      this.bindProductoTaxFallbackLabel();
+    }
   },
 
   closeModal() {
@@ -56,7 +60,7 @@ export const crudModalMethods = {
     this.els.modalForm.noValidate = false;
     this.els.modalForm.innerHTML = "";
     this.els.modalCloseButton.classList.remove("hidden");
-    this.els.modalRoot.querySelector(".modal-card")?.classList.remove("marcas-manager-modal", "stock-modal");
+    this.els.modalRoot.querySelector(".modal-card")?.classList.remove("marcas-manager-modal", "stock-modal", "tax-rate-modal", "tax-category-modal", "report-sale-detail-modal", "report-products-ranking-modal");
     this.els.modalRoot.classList.add("hidden");
     this.productoDraft = null;
   },
@@ -78,6 +82,12 @@ export const crudModalMethods = {
           .filter(marca => marca.Activa || producto?.MarcaId === marca.Id)
           .map(marca => ({ value: marca.Id, label: marca.Nombre }))
       ];
+      const impuestoOptions = [
+        { value: "", label: this.getProductoTaxFallbackOptionLabel(producto?.CategoriaId) },
+        ...this.state.impuestos
+          .filter(impuesto => impuesto.Activo !== false || producto?.ImpuestoId === impuesto.Id)
+          .map(impuesto => ({ value: impuesto.Id, label: `${impuesto.Nombre} ${impuesto.Porcentaje}%` }))
+      ];
       return {
         eyebrow: "Inventario",
         title: isEdit ? "Editar producto" : this.productoDraft ? "Duplicar producto" : "Nuevo producto",
@@ -91,6 +101,8 @@ export const crudModalMethods = {
             ${fieldHtml("Código interno", "CodigoInterno", producto?.CodigoInterno)}
             ${selectHtml("Categoría", "CategoriaId", categoriaOptions, producto?.CategoriaId ?? "")}
             ${selectHtml("Marca", "MarcaId", marcaOptions, producto?.MarcaId ?? "")}
+            ${selectHtml("Impuesto", "ImpuestoId", impuestoOptions, producto?.ImpuestoId ?? "")}
+            <small class="product-tax-helper field-full" data-product-tax-helper></small>
             ${fieldHtml("Precio", "Precio", producto?.Precio ?? 0, true, "number", "0.01")}
             ${fieldHtml("Costo", "Costo", producto?.Costo ?? 0, true, "number", "0.01")}
             ${!isEdit ? fieldHtml("Stock inicial", "Stock", producto?.Stock ?? 0, true, "number", "1") : ""}
@@ -104,6 +116,7 @@ export const crudModalMethods = {
             CodigoInterno: normalizeOptional(form.get("CodigoInterno")),
             CategoriaId: form.get("CategoriaId") ? Number(form.get("CategoriaId")) : null,
             MarcaId: form.get("MarcaId") ? Number(form.get("MarcaId")) : null,
+            ImpuestoId: form.get("ImpuestoId") ? Number(form.get("ImpuestoId")) : null,
             Precio: Number(form.get("Precio") || 0),
             Costo: Number(form.get("Costo") || 0),
             Activo: form.get("Activo") === "on"
@@ -138,6 +151,12 @@ export const crudModalMethods = {
         { value: "bread", label: "Panadería" },
         { value: "candy", label: "Golosinas" }
       ];
+      const impuestoOptions = [
+        { value: "", label: "Usar predeterminada" },
+        ...this.state.impuestos
+          .filter(impuesto => impuesto.Activo !== false || categoria?.ImpuestoId === impuesto.Id)
+          .map(impuesto => ({ value: impuesto.Id, label: `${impuesto.Nombre} ${impuesto.Porcentaje}%` }))
+      ];
       return {
         eyebrow: "Inventario",
         title: isEdit ? "Editar categoría" : "Nueva categoría",
@@ -148,6 +167,7 @@ export const crudModalMethods = {
           <div class="modal-grid-2">
             ${fieldHtml("Nombre", "Nombre", categoria?.Nombre, true)}
             ${selectHtml("Ícono", "Icono", iconOptions, categoria?.Icono || "more")}
+            ${selectHtml("Impuesto", "ImpuestoId", impuestoOptions, categoria?.ImpuestoId ?? "")}
             <div class="field color-field">
               <span>Color</span>
               <input name="Color" type="color" aria-label="Color de categoría" value="${categoria?.Color || "#ef0000"}">
@@ -157,7 +177,8 @@ export const crudModalMethods = {
         payload: form => ({
           Nombre: String(form.get("Nombre") || "").trim(),
           Icono: normalizeOptional(form.get("Icono")),
-          Color: normalizeOptional(form.get("Color"))
+          Color: normalizeOptional(form.get("Color")),
+          ImpuestoId: form.get("ImpuestoId") ? Number(form.get("ImpuestoId")) : null
         }),
         refresh: async () => {
           await this.loadCategoriasProducto();
@@ -284,6 +305,46 @@ export const crudModalMethods = {
     }
 
     throw new Error("Tipo de entidad no soportado.");
+  },
+
+  bindProductoTaxFallbackLabel() {
+    const categoriaSelect = this.els.modalForm.querySelector('select[name="CategoriaId"]');
+    const impuestoSelect = this.els.modalForm.querySelector('select[name="ImpuestoId"]');
+    const fallbackOption = impuestoSelect?.querySelector('option[value=""]');
+    if (!categoriaSelect || !impuestoSelect || !fallbackOption) return;
+
+    const syncLabel = () => {
+      const categoriaId = categoriaSelect.value ? Number(categoriaSelect.value) : null;
+      fallbackOption.textContent = this.getProductoTaxFallbackOptionLabel(categoriaId);
+      const helper = this.els.modalForm.querySelector("[data-product-tax-helper]");
+      if (helper) {
+        helper.textContent = this.getProductoTaxFallbackHelper(categoriaId);
+      }
+      this.syncCustomSelect?.(impuestoSelect);
+    };
+
+    categoriaSelect.addEventListener("change", syncLabel);
+    syncLabel();
+  },
+
+  getProductoTaxFallbackOptionLabel(categoriaId) {
+    return categoriaId ? "Usar impuesto de la categoría" : "Usar impuesto predeterminado";
+  },
+
+  getProductoTaxFallbackHelper(categoriaId) {
+    const categoria = this.state.categoriasProducto.find(item => String(item.Id) === String(categoriaId || ""));
+    const categoriaTax = categoria?.ImpuestoId
+      ? this.state.impuestos.find(impuesto => impuesto.Id === categoria.ImpuestoId)
+      : null;
+    const defaultTax = this.state.impuestosResumen?.Predeterminado || this.state.impuestos.find(impuesto => impuesto.EsPredeterminado);
+
+    if (categoriaTax) {
+      return `Se aplicará: ${categoriaTax.Nombre} ${categoriaTax.Porcentaje}%.`;
+    }
+
+    return defaultTax
+      ? `Se aplicará: ${defaultTax.Nombre} ${defaultTax.Porcentaje}%.`
+      : "Se aplicará la tasa predeterminada cuando esté configurada.";
   },
 
   async submitModalForm(context, formData) {

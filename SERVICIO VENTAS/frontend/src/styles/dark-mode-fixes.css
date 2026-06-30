@@ -1,0 +1,698 @@
+/* Correcciones finales para vistas nuevas con colores fijos. */
+body.theme-dark .app-shell {
+    background: #0f131a;
+}
+
+body.theme-dark .workspace {
+    background: #0f131a;
+    scrollbar-color: #475569 #111827;
+}
+
+body.theme-dark .app-shell.view-ventas .workspace {
+    background: #0f131a;
+}
+
+body.theme-dark .workspace::-webkit-scrollbar,
+body.theme-dark .view-section *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+body.theme-dark .workspace::-webkit-scrollbar-track,
+body.theme-dark .view-section *::-webkit-scrollbar-track {
+    background: #111827;
+}
+
+body.theme-dark .workspace::-webkit-scrollbar-thumb,
+body.theme-dark .view-section *::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 999px;
+    border: 2px solid #111827;
+}
+
+body.theme-dark .view-section {
+    background: transparent;
+    color: #f8fafc;
+}
+
+body.theme-dark #ventasView,
+body.theme-dark #productosView,
+body.theme-dark #cajaView,
+body.theme-dark #reportesView,
+body.theme-dark #configuracionView {
+    color: #f8fafc;
+}
+
+body.theme-dark .view-section :is(div, article, section, header, footer, aside, form, table, thead, tbody, tr, td, th, label, p, span, strong, small, h1, h2, h3, h4, h5, h6) {
+    color: inherit;
+}
+
+body.theme-dark .view-section,
+body.theme-dark .view-section h1,
+body.theme-dark .view-section h2,
+body.theme-dark .view-section h3,
+body.theme-dark .view-section h4,
+body.theme-dark .view-section h5,
+body.theme-dark .view-section strong,
+body.theme-dark .view-section label,
+body.theme-dark .view-section th,
+body.theme-dark .view-section td {
+    color: #f8fafc;
+}
+
+body.theme-dark .view-section p,
+body.theme-dark .view-section small,
+body.theme-dark .view-section span,
+body.theme-dark .view-section .meta-line,
+body.theme-dark .view-section .helper-inline,
+body.theme-dark .view-section .muted {
+    color: #cbd5e1;
+}
+
+body.theme-dark .view-section :is(
+    .panel,
+    .hero-panel,
+    .stat-card,
+    .settings-card,
+    .settings-panel,
+    .settings-radio,
+    .settings-check,
+    .settings-label,
+    .data-table,
+    .table-wrap,
+    .products-table-card,
+    .products-categories,
+    .table-pagination,
+    .tax-card,
+    .tax-summary-card,
+    .tax-rate-card,
+    .tax-category-assignment-row,
+    .taxes-inline-actions,
+    .tax-default-card,
+    .tax-rounding-card,
+    .ticket-option-box,
+    .ticket-options-card,
+    .ticket-logo-upload,
+    .ticket-upload-box,
+    .ticket-preview-receipt,
+    .business-preview-card,
+    .business-quality-card,
+    .business-summary-row,
+    .printer-item,
+    .printer-info-note,
+    .users-summary-item,
+    .users-role-note,
+    .backup-hero,
+    .backup-action-card,
+    .backup-frequency-option,
+    .backup-history-item,
+    .backup-current-path-inline,
+    .backup-location-current,
+    .backup-summary-card,
+    .caja-hero,
+    .caja-open-card,
+    .caja-summary-card,
+    .caja-count-card,
+    .caja-table-card,
+    .caja-history-card,
+    .caja-movement-card,
+    .caja-status-card,
+    .caja-closed-card,
+    .ventas-v2-panel,
+    .ventas-search-field,
+    .ventas-client-select,
+    .ventas-category-pill,
+    .ventas-products .product-list,
+    .ventas-products-pagination,
+    .ventas-totals-box,
+    .ventas-payment-option,
+    .reportes-period-tabs,
+    .reportes-period-tab,
+    .reportes-stat-card,
+    .reportes-card,
+    .reportes-card-link,
+    .reportes-action-row,
+    .reportes-custom-dates,
+    .reportes-date-trigger,
+    .reportes-calendar,
+    .reportes-history-filters,
+    .reportes-history-stats,
+    .reportes-history-table-card,
+    .reportes-history-filter-button,
+    .reportes-history-export,
+    .reportes-detail-button,
+    .reportes-history-custom-dates,
+    .reportes-history-filter-menu,
+    .report-ranking-row,
+    .report-sale-detail-card,
+    .report-sale-detail-product,
+    .reportes-history-row
+) {
+    background-color: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .view-section :is(
+    .reportes-card *,
+    .reportes-stat-card *,
+    .reportes-history-table-card *,
+    .reportes-history-filters *,
+    .report-ranking-row *,
+    .report-sale-detail-card *,
+    .report-sale-detail-product *,
+    .tax-card *,
+    .tax-summary-card *,
+    .tax-rate-card *,
+    .tax-category-assignment-row *,
+    .caja-summary-card *,
+    .caja-count-card *,
+    .caja-table-card *,
+    .caja-history-card *,
+    .ventas-v2-panel *
+) {
+    color: inherit;
+}
+
+body.theme-dark .view-section :is(
+    p,
+    small,
+    .muted,
+    .meta-line,
+    .helper-inline,
+    .data-table th,
+    .reportes-card small,
+    .reportes-card p,
+    .reportes-stat-card span,
+    .tax-card small,
+    .tax-summary-card span,
+    .caja-summary-list span,
+    .caja-table-card p,
+    .ventas-cart-product span
+) {
+    color: #cbd5e1;
+}
+
+body.theme-dark input,
+body.theme-dark textarea,
+body.theme-dark select {
+    color: #f8fafc;
+    background-color: #10131a;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder {
+    color: #94a3b8;
+}
+
+body.theme-dark .data-table th,
+body.theme-dark .data-table td {
+    color: #e5e7eb;
+}
+
+body.theme-dark .empty-state,
+body.theme-dark .empty-state strong,
+body.theme-dark .empty-state small {
+    color: #cbd5e1;
+}
+
+body.theme-dark .ventas-v2-panel,
+body.theme-dark .ventas-search-field,
+body.theme-dark .ventas-client-select,
+body.theme-dark .ventas-category-pill,
+body.theme-dark .ventas-products .product-list,
+body.theme-dark .ventas-product-main,
+body.theme-dark .ventas-add-button,
+body.theme-dark .ventas-products-pagination,
+body.theme-dark .ventas-products-pagination button,
+body.theme-dark .ventas-qty-control,
+body.theme-dark .ventas-qty-control button,
+body.theme-dark .ventas-note-button,
+body.theme-dark .ventas-note-row textarea,
+body.theme-dark .ventas-totals-box,
+body.theme-dark .ventas-payment-option,
+body.theme-dark .ventas-print-last-button {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .ventas-search-field input,
+body.theme-dark .ventas-client-select select {
+    color: #f8fafc;
+}
+
+body.theme-dark .ventas-search-field input {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+body.theme-dark .ventas-search-field svg {
+    color: #cbd5e1;
+}
+
+body.theme-dark .ventas-category-pill.is-active,
+body.theme-dark .ventas-payment-option.is-active {
+    background: rgba(239, 35, 60, 0.14);
+    border-color: rgba(239, 35, 60, 0.5);
+    color: #ffb4b4;
+}
+
+body.theme-dark .ventas-clear-button {
+    color: #ffb4b4;
+}
+
+body.theme-dark .ventas-tip-card {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(96, 165, 250, 0.24);
+    color: #dbeafe;
+}
+
+body.theme-dark .ventas-tip-card span,
+body.theme-dark .ventas-tip-card strong {
+    color: #dbeafe;
+}
+
+body.theme-dark .ventas-products-pagination button:disabled {
+    background: #111827;
+    color: #64748b;
+}
+
+body.theme-dark .caja-page,
+body.theme-dark .caja-hero,
+body.theme-dark .caja-open-card,
+body.theme-dark .caja-summary-card,
+body.theme-dark .caja-count-card,
+body.theme-dark .caja-table-card,
+body.theme-dark .caja-history-card,
+body.theme-dark .caja-movement-card,
+body.theme-dark .caja-status-card,
+body.theme-dark .caja-closed-card {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .caja-hero p,
+body.theme-dark .caja-summary-list span,
+body.theme-dark .caja-table-card p,
+body.theme-dark .caja-history-card p,
+body.theme-dark .caja-muted,
+body.theme-dark .caja-form-help {
+    color: #cbd5e1;
+}
+
+body.theme-dark .reportes-period-tabs,
+body.theme-dark .reportes-period-tab,
+body.theme-dark .reportes-header-actions .btn,
+body.theme-dark .reportes-stat-card,
+body.theme-dark .reportes-card,
+body.theme-dark .reportes-card-link,
+body.theme-dark .reportes-action-row,
+body.theme-dark .reportes-custom-dates,
+body.theme-dark .reportes-date-trigger,
+body.theme-dark .reportes-calendar,
+body.theme-dark .reportes-calendar-head button,
+body.theme-dark .reportes-history-filters,
+body.theme-dark .reportes-history-stats,
+body.theme-dark .reportes-history-table-card,
+body.theme-dark .reportes-history-filter-button,
+body.theme-dark .reportes-history-export,
+body.theme-dark .reportes-detail-button,
+body.theme-dark .reportes-history-custom-dates,
+body.theme-dark .reportes-history-filter-menu,
+body.theme-dark .reportes-ranking-modal,
+body.theme-dark .report-ranking-row,
+body.theme-dark .report-sale-detail,
+body.theme-dark .report-sale-detail-card,
+body.theme-dark .report-sale-detail-product,
+body.theme-dark .reportes-history-row {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .reportes-card p,
+body.theme-dark .reportes-stat-card span,
+body.theme-dark .reportes-history-filters span,
+body.theme-dark .reportes-history-table-card small,
+body.theme-dark .report-sale-detail small,
+body.theme-dark .report-sale-detail-card span,
+body.theme-dark .report-ranking-row span {
+    color: #cbd5e1;
+}
+
+body.theme-dark .settings-card,
+body.theme-dark .settings-panel,
+body.theme-dark .settings-radio,
+body.theme-dark .settings-check,
+body.theme-dark .settings-label,
+body.theme-dark .business-preview-card,
+body.theme-dark .business-quality-card,
+body.theme-dark .business-summary-row,
+body.theme-dark .ticket-option-box,
+body.theme-dark .ticket-upload-box,
+body.theme-dark .ticket-preview-receipt,
+body.theme-dark .tax-card,
+body.theme-dark .tax-summary-card,
+body.theme-dark .tax-rate-card,
+body.theme-dark .tax-category-assignment-row,
+body.theme-dark .printer-item,
+body.theme-dark .printer-info-note,
+body.theme-dark .users-summary-item,
+body.theme-dark .users-role-note,
+body.theme-dark .backup-hero,
+body.theme-dark .backup-action-card,
+body.theme-dark .backup-frequency-option,
+body.theme-dark .backup-history-item,
+body.theme-dark .backup-current-path-inline,
+body.theme-dark .backup-location-current,
+body.theme-dark .backup-summary-card {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .settings-card p,
+body.theme-dark .settings-panel p,
+body.theme-dark .settings-check span,
+body.theme-dark .settings-label span,
+body.theme-dark .business-summary-row span,
+body.theme-dark .ticket-select-field small,
+body.theme-dark .ticket-logo-upload p,
+body.theme-dark .tax-card small,
+body.theme-dark .tax-summary-card span,
+body.theme-dark .printer-meta,
+body.theme-dark .printer-detail-row,
+body.theme-dark .user-name-cell small,
+body.theme-dark .backup-action-card small,
+body.theme-dark .backup-history-item span,
+body.theme-dark .backup-current-path-inline span,
+body.theme-dark .backup-location-current span,
+body.theme-dark .backup-frequency-option small {
+    color: #cbd5e1;
+}
+
+body.theme-dark .custom-select-trigger,
+body.theme-dark .custom-select-menu,
+body.theme-dark .custom-select-option {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .custom-select-option:hover,
+body.theme-dark .custom-select-option.is-selected {
+    background: rgba(239, 35, 60, 0.14);
+    color: #ffb4b4;
+}
+
+body.theme-dark #cajaView .caja-page,
+body.theme-dark #cajaView .caja-session-strip,
+body.theme-dark #cajaView .caja-open-card,
+body.theme-dark #cajaView .caja-summary-card,
+body.theme-dark #cajaView .caja-count-card,
+body.theme-dark #cajaView .caja-table-card,
+body.theme-dark #cajaView .caja-difference-preview,
+body.theme-dark #cajaView .caja-session-warning.is-neutral,
+body.theme-dark #cajaView .caja-table th,
+body.theme-dark #cajaView .table-pagination {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+}
+
+body.theme-dark #cajaView .caja-session-warning {
+    background: rgba(251, 146, 60, 0.12);
+    color: #fed7aa;
+    border-color: rgba(251, 146, 60, 0.28);
+}
+
+body.theme-dark #cajaView .caja-info-note,
+body.theme-dark #cajaView .caja-difference-preview.is-neutral {
+    background: rgba(37, 99, 235, 0.12);
+    color: #bfdbfe;
+    border-color: rgba(96, 165, 250, 0.28);
+}
+
+body.theme-dark #cajaView .caja-difference-preview.is-danger {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(248, 113, 113, 0.28);
+}
+
+body.theme-dark #cajaView .caja-difference-preview.is-success {
+    background: rgba(22, 163, 74, 0.12);
+    border-color: rgba(74, 222, 128, 0.28);
+}
+
+body.theme-dark #cajaView .caja-difference-preview.is-warning {
+    background: rgba(251, 146, 60, 0.12);
+    border-color: rgba(251, 146, 60, 0.28);
+}
+
+body.theme-dark #cajaView :is(
+    .caja-title-block h3,
+    .caja-title-block p,
+    .caja-session-item strong,
+    .caja-session-empty strong,
+    .caja-open-card h4,
+    .caja-card-head h4,
+    .caja-summary-list span,
+    .caja-summary-list strong,
+    .caja-summary-total span,
+    .caja-summary-total strong,
+    .caja-difference-preview strong,
+    .caja-difference-preview b,
+    .caja-table-head h3,
+    .caja-table th,
+    .caja-table td
+) {
+    color: #f8fafc;
+}
+
+body.theme-dark #cajaView :is(
+    .caja-session-item span,
+    .caja-session-empty,
+    .caja-open-card p,
+    .caja-card-head p,
+    .caja-difference-preview small,
+    .caja-close-note
+) {
+    color: #cbd5e1;
+}
+
+body.theme-dark #cajaView .caja-session-item,
+body.theme-dark #cajaView .caja-summary-total,
+body.theme-dark #cajaView .caja-table th,
+body.theme-dark #cajaView .caja-table td,
+body.theme-dark #cajaView .table-pagination {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.theme-dark #cajaView .caja-table th {
+    background: #111827;
+}
+
+body.theme-dark #cajaView input,
+body.theme-dark #cajaView textarea,
+body.theme-dark #cajaView select {
+    background: #10131a;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+body.theme-dark #reportesView .reportes-info-tip {
+    background: rgba(37, 99, 235, 0.12);
+    color: #dbeafe;
+    border-color: rgba(96, 165, 250, 0.28);
+}
+
+body.theme-dark #reportesView .reportes-info-tip span {
+    background: rgba(37, 99, 235, 0.2);
+    color: #93c5fd;
+    border-color: rgba(147, 197, 253, 0.4);
+}
+
+body.theme-dark #reportesView .reportes-info-tip strong,
+body.theme-dark #reportesView .reportes-info-tip p {
+    color: #dbeafe;
+}
+
+body.theme-dark #reportesView .reportes-stat-card.is-money .reportes-stat-icon,
+body.theme-dark #reportesView .reportes-history-stat.is-money .reportes-stat-icon {
+    background: #dff4e5;
+    color: #27964a;
+}
+
+body.theme-dark #reportesView .reportes-stat-card.is-sales .reportes-stat-icon,
+body.theme-dark #reportesView .reportes-history-stat.is-sales .reportes-stat-icon {
+    background: #dfe9ff;
+    color: #2563eb;
+}
+
+body.theme-dark #reportesView .reportes-stat-card.is-products .reportes-stat-icon {
+    background: #eadcff;
+    color: #7e22ce;
+}
+
+body.theme-dark #reportesView .reportes-stat-card.is-caja .reportes-stat-icon,
+body.theme-dark #reportesView .reportes-history-stat.is-caja .reportes-stat-icon {
+    background: #ffe8d5;
+    color: #f97316;
+}
+
+body.theme-dark #reportesView .reportes-history-stat.is-ticket .reportes-stat-icon {
+    background: #eadcff;
+    color: #7e22ce;
+}
+
+body.theme-dark #reportesView .reportes-stat-icon svg,
+body.theme-dark #reportesView .reportes-stat-icon .reportes-money-symbol {
+    color: inherit;
+    stroke: currentColor;
+}
+
+body.theme-dark #settingsTaxesPanel,
+body.theme-dark #settingsTaxesPanel .taxes-main-card,
+body.theme-dark #settingsTaxesPanel .taxes-preview-card,
+body.theme-dark #settingsTaxesPanel .taxes-category-card,
+body.theme-dark #settingsTaxesPanel .taxes-note-card,
+body.theme-dark #settingsTaxesPanel .taxes-status-card,
+body.theme-dark #settingsTaxesPanel .taxes-rules-panel,
+body.theme-dark #settingsTaxesPanel .taxes-toggle-card,
+body.theme-dark #settingsTaxesPanel .tax-fixed-value,
+body.theme-dark #settingsTaxesPanel .taxes-inline-head,
+body.theme-dark #settingsTaxesPanel .taxes-inline-actions > span,
+body.theme-dark #settingsTaxesPanel .tax-rate-row,
+body.theme-dark #settingsTaxesPanel .tax-rate-modal-check,
+body.theme-dark #settingsTaxesPanel .tax-category-assignment-row,
+body.theme-dark #settingsTaxesPanel .tax-category-empty,
+body.theme-dark #settingsTaxesPanel .tax-rate-action {
+    background: #151922;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+}
+
+body.theme-dark #settingsTaxesPanel .taxes-status-card.is-primary,
+body.theme-dark #settingsTaxesPanel .tax-rate-row.is-default {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+body.theme-dark #settingsTaxesPanel :is(
+    .taxes-rules-copy h5,
+    .taxes-toggle-card strong,
+    .tax-fixed-value strong,
+    .tax-rate-row strong,
+    .tax-rate-row b,
+    .tax-category-assignment-row > span,
+    .tax-ticket-preview strong,
+    .tax-category-list strong,
+    .tax-ticket-total strong,
+    .tax-ticket-total span,
+    .settings-card-head h4,
+    .taxes-inline-title h4
+) {
+    color: #f8fafc;
+}
+
+body.theme-dark #settingsTaxesPanel :is(
+    .taxes-status-card span,
+    .taxes-status-card small,
+    .taxes-rules-copy p,
+    .taxes-toggle-card small,
+    .tax-fixed-value small,
+    .taxes-inline-actions > span,
+    .tax-rate-row span,
+    .tax-rates-pagination span,
+    .tax-category-actions span,
+    .tax-category-modal-intro p,
+    .tax-ticket-preview span,
+    .tax-category-list span,
+    .tax-ticket-preview small,
+    .product-tax-helper
+) {
+    color: #cbd5e1;
+}
+
+body.theme-dark #settingsTaxesPanel .taxes-eyebrow,
+body.theme-dark #settingsTaxesPanel .taxes-new-rate-btn {
+    color: #fecaca;
+}
+
+body.theme-dark #settingsTaxesPanel .taxes-new-rate-btn {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+body.theme-dark #settingsTaxesPanel .tax-rate-row em.is-active {
+    background: rgba(22, 163, 74, 0.16);
+    color: #86efac;
+}
+
+body.theme-dark #settingsTaxesPanel .tax-rate-row em.is-inactive {
+    background: rgba(220, 38, 38, 0.16);
+    color: #fecaca;
+}
+
+body.theme-dark #settingsTaxesPanel .tax-rate-action:hover {
+    background: rgba(220, 38, 38, 0.14);
+    color: #fecaca;
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+body.theme-dark #settingsTaxesPanel .tax-ticket-preview div,
+body.theme-dark #settingsTaxesPanel .tax-category-list div,
+body.theme-dark #settingsTaxesPanel .tax-ticket-preview hr {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark #settingsTaxesPanel .custom-select-trigger,
+body.theme-dark #settingsTaxesPanel .custom-select-menu,
+body.theme-dark #settingsTaxesPanel select {
+    background: #10131a;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+body.theme-dark #settingsPrintersPanel .printer-item-status,
+body.theme-dark #settingsPrintersPanel .printer-detail-status {
+    color: #86efac;
+}
+
+body.theme-dark #settingsPrintersPanel .printer-item-status.is-offline,
+body.theme-dark #settingsPrintersPanel .printer-detail-status.is-offline {
+    color: #94a3b8;
+}
+
+body.theme-dark #settingsPrintersPanel .printer-default-badge,
+body.theme-dark #settingsUsersPanel .user-status-badge.is-active,
+body.theme-dark #settingsBackupPanel .backup-state-badge.is-success {
+    background: rgba(22, 163, 74, 0.18);
+    color: #86efac;
+    border: 1px solid rgba(74, 222, 128, 0.26);
+}
+
+body.theme-dark #settingsUsersPanel .user-status-badge.is-inactive,
+body.theme-dark #settingsBackupPanel .backup-state-badge.is-pending {
+    background: rgba(148, 163, 184, 0.14);
+    color: #cbd5e1;
+    border: 1px solid rgba(203, 213, 225, 0.18);
+}
+
+body.theme-dark #settingsUsersPanel .user-role-badge,
+body.theme-dark #settingsPrintersPanel .printer-demo-badge {
+    background: rgba(99, 102, 241, 0.18);
+    color: #c7d2fe;
+    border: 1px solid rgba(165, 180, 252, 0.24);
+}
+
+body.theme-dark #settingsBackupPanel .backup-action-icon {
+    background: rgba(var(--brand-rgb), 0.16);
+    color: #ffb4b4;
+}

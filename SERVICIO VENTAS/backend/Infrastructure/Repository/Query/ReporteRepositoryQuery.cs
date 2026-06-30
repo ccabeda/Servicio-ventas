@@ -1,16 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.DTOs.Reportes;
 using ServicioVentas.Application.IRepository.IQuery;
 using ServicioVentas.Domain.Enums;
 using ServicioVentas.Infrastructure.Persistence;
+using System.Linq.Expressions;
 
 namespace ServicioVentas.Infrastructure.Repository.Query;
 
 public class ReporteRepositoryQuery(ServicioVentasDbContext context) : IReporteRepositoryQuery
 {
-    public async Task<ResumenVentasDto> GetResumenVentasAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? usuarioId)
+    public async Task<ResumenVentasDto> GetResumenVentasAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId, int? clienteId, decimal? totalMinimo, decimal? totalMaximo)
     {
-        var ventas = FiltrarVentas(fechaDesde, fechaHasta, null, usuarioId, null);
+        var ventas = FiltrarVentas(fechaDesde, fechaHasta, cajaId, usuarioId, medioPagoId, clienteId, totalMinimo, totalMaximo);
 
         var resumenBase = await ventas
             .GroupBy(_ => 1)
@@ -46,34 +48,42 @@ public class ReporteRepositoryQuery(ServicioVentasDbContext context) : IReporteR
         };
     }
 
-    public async Task<List<VentaReporteDto>> GetVentasPorPeriodoAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId)
+    public async Task<List<VentaReporteDto>> GetVentasPorPeriodoAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId, int? clienteId, decimal? totalMinimo, decimal? totalMaximo)
     {
-        return await FiltrarVentas(fechaDesde, fechaHasta, cajaId, usuarioId, medioPagoId)
+        return await FiltrarVentas(fechaDesde, fechaHasta, cajaId, usuarioId, medioPagoId, clienteId, totalMinimo, totalMaximo)
             .OrderByDescending(x => x.Fecha)
-            .Select(x => new VentaReporteDto
-            {
-                VentaId = x.Id,
-                Fecha = x.Fecha,
-                Total = x.Total,
-                Subtotal = x.Subtotal,
-                Descuento = x.Descuento,
-                Recargo = x.Recargo,
-                CajaId = x.CajaId,
-                UsuarioId = x.UsuarioId,
-                UsuarioNombre = x.Usuario.NombreUsuario,
-                MedioPagoId = x.MedioPagoId,
-                MedioPagoNombre = x.MedioPago.Nombre,
-                ClienteId = x.ClienteId,
-                ClienteNombre = x.Cliente != null ? x.Cliente.Nombre : null,
-                CantidadItems = x.Detalles.Count,
-                UnidadesVendidas = x.Detalles.Sum(d => d.Cantidad)
-            })
+            .Select(VentaReporteProjection)
             .ToListAsync();
     }
 
-    public async Task<List<ProductoMasVendidoDto>> GetProductosMasVendidosAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? usuarioId, int top)
+    public async Task<PagedResultDto<VentaReporteDto>> GetVentasPorPeriodoPagedAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId, int? clienteId, decimal? totalMinimo, decimal? totalMaximo, int pageIndex, int pageSize)
     {
-        return await FiltrarVentas(fechaDesde, fechaHasta, null, usuarioId, null)
+        pageIndex = Math.Max(1, pageIndex);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = FiltrarVentas(fechaDesde, fechaHasta, cajaId, usuarioId, medioPagoId, clienteId, totalMinimo, totalMaximo)
+            .OrderByDescending(x => x.Fecha);
+
+        var totalItems = await query.CountAsync();
+        var items = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .Select(VentaReporteProjection)
+            .ToListAsync();
+
+        return new PagedResultDto<VentaReporteDto>
+        {
+            Items = items,
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+        };
+    }
+
+    public async Task<List<ProductoMasVendidoDto>> GetProductosMasVendidosAsync(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId, int? clienteId, decimal? totalMinimo, decimal? totalMaximo, int top)
+    {
+        return await FiltrarVentas(fechaDesde, fechaHasta, cajaId, usuarioId, medioPagoId, clienteId, totalMinimo, totalMaximo)
             .SelectMany(x => x.Detalles)
             .GroupBy(d => new { d.ProductoId, d.Producto.Nombre })
             .Select(g => new ProductoMasVendidoDto
@@ -90,7 +100,27 @@ public class ReporteRepositoryQuery(ServicioVentasDbContext context) : IReporteR
             .ToListAsync();
     }
 
-    private IQueryable<ServicioVentas.Domain.Models.Venta> FiltrarVentas(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId)
+    private static readonly Expression<Func<ServicioVentas.Domain.Models.Venta, VentaReporteDto>> VentaReporteProjection = x =>
+        new VentaReporteDto
+        {
+            VentaId = x.Id,
+            Fecha = x.Fecha,
+            Total = x.Total,
+            Subtotal = x.Subtotal,
+            Descuento = x.Descuento,
+            Recargo = x.Recargo,
+            CajaId = x.CajaId,
+            UsuarioId = x.UsuarioId,
+            UsuarioNombre = x.Usuario.NombreUsuario,
+            MedioPagoId = x.MedioPagoId,
+            MedioPagoNombre = x.MedioPago.Nombre,
+            ClienteId = x.ClienteId,
+            ClienteNombre = x.Cliente != null ? x.Cliente.Nombre : null,
+            CantidadItems = x.Detalles.Count,
+            UnidadesVendidas = x.Detalles.Sum(d => d.Cantidad)
+        };
+
+    private IQueryable<ServicioVentas.Domain.Models.Venta> FiltrarVentas(DateTime? fechaDesde, DateTime? fechaHasta, int? cajaId, int? usuarioId, int? medioPagoId, int? clienteId, decimal? totalMinimo, decimal? totalMaximo)
     {
         var query = context.Ventas
             .AsNoTracking()
@@ -116,6 +146,15 @@ public class ReporteRepositoryQuery(ServicioVentasDbContext context) : IReporteR
 
         if (medioPagoId.HasValue)
             query = query.Where(x => x.MedioPagoId == medioPagoId.Value);
+
+        if (clienteId.HasValue)
+            query = query.Where(x => x.ClienteId == clienteId.Value);
+
+        if (totalMinimo.HasValue)
+            query = query.Where(x => x.Total >= totalMinimo.Value);
+
+        if (totalMaximo.HasValue)
+            query = query.Where(x => x.Total <= totalMaximo.Value);
 
         return query;
     }

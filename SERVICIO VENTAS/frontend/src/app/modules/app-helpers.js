@@ -28,11 +28,27 @@ export const appHelperMethods = {
 
   buildReportQuery() {
     const params = new URLSearchParams();
+    delete this.state.reportFilters.cajaId;
     if (this.state.reportFilters.fechaDesde) {
       params.set("fechaDesde", this.toApiDateTime(this.startOfLocalDate(this.state.reportFilters.fechaDesde)));
     }
     if (this.state.reportFilters.fechaHasta) {
       params.set("fechaHasta", this.toApiDateTime(this.endOfLocalDate(this.state.reportFilters.fechaHasta)));
+    }
+    if (this.state.reportFilters.usuarioId) {
+      params.set("usuarioId", String(this.state.reportFilters.usuarioId));
+    }
+    if (this.state.reportFilters.medioPagoId) {
+      params.set("medioPagoId", String(this.state.reportFilters.medioPagoId));
+    }
+    if (this.state.reportFilters.clienteId) {
+      params.set("clienteId", String(this.state.reportFilters.clienteId));
+    }
+    if (this.state.reportFilters.totalMinimo) {
+      params.set("totalMinimo", String(this.state.reportFilters.totalMinimo));
+    }
+    if (this.state.reportFilters.totalMaximo) {
+      params.set("totalMaximo", String(this.state.reportFilters.totalMaximo));
     }
     const query = params.toString();
     return query ? `?${query}` : "";
@@ -78,7 +94,7 @@ export const appHelperMethods = {
   },
 
   enhanceCustomSelects(root = document) {
-    root.querySelectorAll(".field select, .pagination-size select, .business-hours-range select").forEach(select => {
+    root.querySelectorAll(".field select, .ventas-client-select select, .pagination-size select, .business-hours-range select, .tax-category-assignment-row select, .taxes-inline-actions select").forEach(select => {
       if (select.dataset.customSelectReady) {
         this.syncCustomSelect(select);
         return;
@@ -371,6 +387,37 @@ export const appHelperMethods = {
 
   canManageEntity(entity) {
     return this.hasPermission(ENTITY_PERMISSIONS[entity]);
+  },
+
+  updateSidebarBackupCard() {
+    const card = this.els.sidebarBackupCard;
+    if (!card) return;
+
+    const config = this.state.backupConfiguration;
+    const frequency = this.normalizeBackupFrequency?.(config?.Frecuencia);
+    const hasActivePlan = Boolean(config && ["daily", "weekly", "monthly"].includes(frequency));
+    const shouldShow = hasActivePlan && this.state.currentView !== "configuracion";
+    card.classList.toggle("hidden", !shouldShow);
+    if (!shouldShow) return;
+
+    const time = config.Hora || "03:00";
+    const weekday = Number.isInteger(config.DiaSemana) ? config.DiaSemana : 1;
+    const monthday = Number.isInteger(config.DiaMes) ? config.DiaMes : 1;
+    const planLabel = this.formatBackupPlanLabel?.(frequency, time, weekday, monthday) || "Activo";
+    const lastBackup = config.UltimoRespaldo?.Fecha
+      || config.UltimoRespaldo
+      || config.FechaUltimoRespaldo
+      || this.state.lastBackup?.Fecha;
+
+    if (this.els.sidebarBackupStatus) {
+      this.els.sidebarBackupStatus.textContent = planLabel;
+    }
+
+    if (this.els.sidebarBackupLast) {
+      this.els.sidebarBackupLast.textContent = lastBackup
+        ? `Último respaldo: ${formatDateTime(lastBackup)}`
+        : "Último respaldo: Sin datos";
+    }
   },
 
   ensureAllowedView(view) {

@@ -13,6 +13,10 @@ public class VentaDetalleConfiguration : IEntityTypeConfiguration<VentaDetalle>
         builder.Property(x => x.Cantidad).HasColumnType("decimal(18,2)");
         builder.Property(x => x.PrecioUnitario).HasColumnType("decimal(18,2)");
         builder.Property(x => x.Subtotal).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.ImpuestoNombre).IsRequired().HasMaxLength(80);
+        builder.Property(x => x.ImpuestoPorcentaje).HasColumnType("decimal(5,2)");
+        builder.Property(x => x.ImporteNeto).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.ImporteImpuesto).HasColumnType("decimal(18,2)");
 
         builder.HasOne(x => x.Venta)
             .WithMany(x => x.Detalles)
@@ -23,6 +27,11 @@ public class VentaDetalleConfiguration : IEntityTypeConfiguration<VentaDetalle>
             .WithMany(x => x.VentaDetalles)
             .HasForeignKey(x => x.ProductoId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Impuesto)
+            .WithMany()
+            .HasForeignKey(x => x.ImpuestoId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 

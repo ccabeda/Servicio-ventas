@@ -34,6 +34,8 @@ public static class DependencyInjection
         services.AddScoped<IClienteRepositoryQuery, ClienteRepositoryQuery>();
         services.AddScoped<IMedioPagoRepositoryCommand, MedioPagoRepositoryCommand>();
         services.AddScoped<IMedioPagoRepositoryQuery, MedioPagoRepositoryQuery>();
+        services.AddScoped<IImpuestoRepositoryCommand, ImpuestoRepositoryCommand>();
+        services.AddScoped<IImpuestoRepositoryQuery, ImpuestoRepositoryQuery>();
         services.AddScoped<IConfiguracionNegocioRepositoryCommand, ConfiguracionNegocioRepositoryCommand>();
         services.AddScoped<IConfiguracionNegocioRepositoryQuery, ConfiguracionNegocioRepositoryQuery>();
         services.AddScoped<IConfiguracionTicketRepositoryCommand, ConfiguracionTicketRepositoryCommand>();

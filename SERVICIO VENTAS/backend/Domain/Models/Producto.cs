@@ -11,12 +11,14 @@ public class Producto
     public decimal Stock { get; set; }
     public int? CategoriaId { get; set; }
     public int? MarcaId { get; set; }
+    public int? ImpuestoId { get; set; }
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public DateTime? FechaActualizacion { get; set; }
 
     public CategoriaProducto? Categoria { get; set; }
     public MarcaProducto? Marca { get; set; }
+    public Impuesto? Impuesto { get; set; }
     public ICollection<VentaDetalle> VentaDetalles { get; set; } = new List<VentaDetalle>();
     public ICollection<MovimientoStock> MovimientosStock { get; set; } = new List<MovimientoStock>();
 }

@@ -24,6 +24,10 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
             .WithMany(x => x.Productos)
             .HasForeignKey(x => x.MarcaId)
             .OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne(x => x.Impuesto)
+            .WithMany(x => x.Productos)
+            .HasForeignKey(x => x.ImpuestoId)
+            .OnDelete(DeleteBehavior.SetNull);
         builder.HasIndex(x => x.CodigoBarra).IsUnique().HasFilter("[CodigoBarra] IS NOT NULL");
         builder.HasIndex(x => x.CodigoInterno).IsUnique().HasFilter("[CodigoInterno] IS NOT NULL");
     }

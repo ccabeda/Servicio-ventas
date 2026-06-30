@@ -23,6 +23,7 @@ public class ConfiguracionNegocioConfiguration : IEntityTypeConfiguration<Config
         builder.Property(x => x.MantenerClienteAlFinalizarVenta).HasDefaultValue(true);
         builder.Property(x => x.MostrarStockEnBusquedaProductos).HasDefaultValue(true);
         builder.Property(x => x.PedirCantidadAlAgregarProducto).HasDefaultValue(false);
+        builder.Property(x => x.AplicarImpuestosEnVentas).HasDefaultValue(true);
         builder.Property(x => x.DescuentoMaximoPermitido).HasColumnType("decimal(18,2)").HasDefaultValue(20m);
         builder.Property(x => x.RedondeoTotal).IsRequired().HasMaxLength(10).HasDefaultValue("0.05");
         builder.Property(x => x.PedirMotivoCerrarCaja).HasDefaultValue(true);

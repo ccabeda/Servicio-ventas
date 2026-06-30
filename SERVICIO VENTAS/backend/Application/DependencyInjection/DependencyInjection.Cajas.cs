@@ -14,6 +14,7 @@ public static partial class DependencyInjection
         services.AddScoped<IGetCajaActualHandler, GetCajaActualHandler>();
         services.AddScoped<IGetHistorialCajasHandler, GetHistorialCajasHandler>();
         services.AddScoped<IGetMovimientosCajaHandler, GetMovimientosCajaHandler>();
+        services.AddScoped<IGetResumenCajaHandler, GetResumenCajaHandler>();
         return services;
     }
 }

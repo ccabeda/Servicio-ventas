@@ -13,6 +13,9 @@ public class ProductoDto
     public string? Categoria { get; set; }
     public int? MarcaId { get; set; }
     public string? Marca { get; set; }
+    public int? ImpuestoId { get; set; }
+    public string? ImpuestoNombre { get; set; }
+    public decimal? ImpuestoPorcentaje { get; set; }
     public bool Activo { get; set; }
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaActualizacion { get; set; }

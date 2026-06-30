@@ -219,13 +219,68 @@ body.theme-dark .nav-link.active {
     color: #111827;
 }
 
+.sidebar-backup-card {
+    width: 100%;
+    padding: 16px;
+    border-radius: 7px;
+    border: 1px solid #d9dee7;
+    background: #ffffff;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    color: #111827;
+}
+
+.sidebar-backup-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 999px;
+    color: #22a447;
+}
+
+.sidebar-backup-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .help-card strong,
-.help-link {
+.help-link,
+.sidebar-backup-card strong,
+.sidebar-backup-card span,
+.sidebar-backup-card small {
     display: block;
 }
 
 .help-card strong {
     font-size: 0.92rem;
+}
+
+.sidebar-backup-card strong {
+    color: #111827;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.sidebar-backup-card span {
+    margin-top: 5px;
+    color: #16a34a;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.sidebar-backup-card small {
+    margin-top: 7px;
+    color: #1f2940;
+    font-size: 0.82rem;
+    line-height: 1.35;
 }
 
 .help-link {
@@ -289,6 +344,17 @@ body.theme-dark .nav-link.active {
 body.theme-dark .help-card {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
+    color: #f9fafb;
+}
+
+body.theme-dark .sidebar-backup-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f9fafb;
+}
+
+body.theme-dark .sidebar-backup-card strong,
+body.theme-dark .sidebar-backup-card small {
     color: #f9fafb;
 }
 

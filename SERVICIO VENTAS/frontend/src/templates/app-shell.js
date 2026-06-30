@@ -63,7 +63,7 @@ function buildAppView() {
             <button class="active" type="button" data-settings-tab="negocio">Datos del negocio</button>
             <button type="button" data-settings-tab="ticket">Ticket</button>
             <button type="button" data-settings-tab="impresoras">Impresoras</button>
-            <button type="button">Impuestos</button>
+            <button type="button" data-settings-tab="impuestos">Impuestos</button>
             <button type="button" data-settings-tab="usuarios">Usuarios</button>
             <button type="button" data-settings-tab="preferencias">Preferencias</button>
             <button type="button" data-settings-tab="respaldo">Respaldo</button>
@@ -71,13 +71,14 @@ function buildAppView() {
         </nav>
 
         <div class="sidebar-footer">
-          <div class="help-card">
-            <div class="help-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M4 14v-1a8 8 0 1 1 16 0v1" /><path d="M18 19c0 1.1-.9 2-2 2h-3" /><path d="M4 14a3 3 0 0 0 3 3h1v-6H7a3 3 0 0 0-3 3Z" /><path d="M20 14a3 3 0 0 1-3 3h-1v-6h1a3 3 0 0 1 3 3Z" /></svg>
+          <div id="sidebarBackupCard" class="sidebar-backup-card hidden">
+            <div class="sidebar-backup-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 18h10.2a4.3 4.3 0 0 0 .7-8.54 6 6 0 0 0-11.7 1.2A3.72 3.72 0 0 0 7 18Z" /><path d="m8.5 14.1 2.2 2.2 4.8-5" /></svg>
             </div>
             <div>
-              <strong>¿Necesitás ayuda?</strong>
-              <span class="help-link">Centro de ayuda <span aria-hidden="true">↗</span></span>
+              <strong>Respaldo automático</strong>
+              <span id="sidebarBackupStatus">Activo</span>
+              <small id="sidebarBackupLast">Último respaldo: Sin datos</small>
             </div>
           </div>
           <button id="sidebarLogoutButton" class="sidebar-logout" type="button">

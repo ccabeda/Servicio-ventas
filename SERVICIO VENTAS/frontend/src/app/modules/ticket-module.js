@@ -8,10 +8,14 @@ export const ticketMethods = {
     const fechaHora = ticketConfig?.ImprimirFechaHoraTicket !== false ? formatDateTime(venta.Fecha) : "";
     const medioPago = this.state.mediosPago.find(item => item.Id === venta.MedioPagoId);
     const cliente = this.state.clientes.find(item => item.Id === venta.ClienteId);
+    const cajeroNombre = venta.UsuarioNombre || this.state.session?.NombreUsuario || "";
+    const medioPagoNombre = medioPago?.Nombre || venta.MedioPagoNombre || "-";
+    const clienteNombre = cliente?.Nombre || venta.ClienteNombre || "Consumidor final";
     const showBusinessData = ticketConfig?.ImprimirDatosNegocioTicket !== false;
     const showMedioPago = ticketConfig?.ImprimirMedioPagoTicket !== false;
     const showCliente = ticketConfig?.ImprimirClienteTicket !== false;
     const showMensajeCierre = ticketConfig?.ImprimirMensajeCierreTicket !== false;
+    const showTaxBreakdown = ticketConfig?.ImprimirDesgloseImpuestosTicket !== false;
     const logoUrl = config?.LogoUrl || "";
     const businessLines = [config?.Direccion].filter(Boolean);
     const details = ticketItems.map(item => `
@@ -22,8 +26,10 @@ export const ticketMethods = {
     `).join("");
 
     const showSubtotalTotal = ticketConfig?.ImprimirSubtotalTotalTicket !== false;
+    const taxSummaryRows = showTaxBreakdown ? this.buildTicketTaxSummaryRows(venta) : "";
     const summaryRows = [
       showSubtotalTotal ? `<div class="ticket-row"><span>Subtotal</span><strong>${formatMoney(venta.Subtotal)}</strong></div>` : "",
+      taxSummaryRows,
       ticketConfig?.ImprimirDescuentoRecargoTicket !== false ? `<div class="ticket-row"><span>Descuento</span><strong>${formatNumber(venta.Descuento)}%</strong></div>` : "",
       ticketConfig?.ImprimirDescuentoRecargoTicket !== false ? `<div class="ticket-row"><span>Recargo</span><strong>${formatMoney(venta.Recargo)}</strong></div>` : "",
       showSubtotalTotal ? `<div class="ticket-row"><span>Total</span><strong>${formatMoney(venta.Total)}</strong></div>` : ""
@@ -32,7 +38,7 @@ export const ticketMethods = {
     const saleMetaRows = [
       fechaHora ? `<div class="ticket-row"><span>Fecha</span><strong>${fechaHora}</strong></div>` : "",
       ticketConfig?.ImprimirNumeroTicket !== false ? `<div class="ticket-row"><span>Venta</span><strong>#${venta.Id}</strong></div>` : "",
-      ticketConfig?.ImprimirCajeroTicket !== false ? `<div class="ticket-row"><span>Cajero</span><strong>${escapeHtml(this.state.session?.NombreUsuario || "")}</strong></div>` : ""
+      ticketConfig?.ImprimirCajeroTicket !== false ? `<div class="ticket-row"><span>Cajero</span><strong>${escapeHtml(cajeroNombre)}</strong></div>` : ""
     ].join("");
 
     const ticketHtml = `
@@ -45,8 +51,8 @@ export const ticketMethods = {
         </div>
       </div>
       ${saleMetaRows}
-      ${showMedioPago ? `<div class="ticket-row"><span>Pago</span><strong>${escapeHtml(medioPago?.Nombre || "-")}</strong></div>` : ""}
-      ${showCliente ? `<div class="ticket-row"><span>Cliente</span><strong>${escapeHtml(cliente?.Nombre || "Consumidor final")}</strong></div>` : ""}
+      ${showMedioPago ? `<div class="ticket-row"><span>Pago</span><strong>${escapeHtml(medioPagoNombre)}</strong></div>` : ""}
+      ${showCliente ? `<div class="ticket-row"><span>Cliente</span><strong>${escapeHtml(clienteNombre)}</strong></div>` : ""}
       <hr>
       ${details}
       ${summaryRows ? `<hr>${summaryRows}` : ""}
@@ -71,6 +77,39 @@ export const ticketMethods = {
     if (ticketConfig?.VistaPreviaAntesImprimir === false) {
       window.setTimeout(() => this.printTicket({ closeAfterPrint: true }), 80);
     }
+  },
+
+  buildTicketTaxSummaryRows(venta) {
+    const detalles = Array.isArray(venta.Detalles) ? venta.Detalles : [];
+    const taxableDetails = detalles.filter(detalle => Number(detalle.ImporteImpuesto || 0) > 0);
+
+    if (!taxableDetails.length) {
+      return "";
+    }
+
+    const neto = taxableDetails.reduce((total, detalle) => total + Number(detalle.ImporteNeto || 0), 0);
+    const impuestos = taxableDetails.reduce((total, detalle) => total + Number(detalle.ImporteImpuesto || 0), 0);
+    const rates = new Map();
+
+    taxableDetails.forEach(detalle => {
+      const nombre = detalle.ImpuestoNombre || "Impuesto";
+      const porcentaje = Number(detalle.ImpuestoPorcentaje || 0);
+      const key = `${nombre}-${porcentaje}`;
+      const current = rates.get(key) || { nombre, porcentaje, importe: 0 };
+      current.importe += Number(detalle.ImporteImpuesto || 0);
+      rates.set(key, current);
+    });
+
+    return [
+      `<div class="ticket-row"><span>Neto gravado</span><strong>${formatMoney(neto)}</strong></div>`,
+      ...Array.from(rates.values()).map(rate => `
+        <div class="ticket-row">
+          <span>${escapeHtml(rate.nombre)} ${formatNumber(rate.porcentaje)}%</span>
+          <strong>${formatMoney(rate.importe)}</strong>
+        </div>
+      `),
+      `<div class="ticket-row"><span>Total impuestos</span><strong>${formatMoney(impuestos)}</strong></div>`
+    ].join("");
   },
 
   printTicket({ closeAfterPrint = false } = {}) {

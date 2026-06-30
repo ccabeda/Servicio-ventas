@@ -18,6 +18,7 @@ public class CajasController(
     IGetCajaActualHandler getCajaActualHandler,
     IGetHistorialCajasHandler getHistorialCajasHandler,
     IGetMovimientosCajaHandler getMovimientosCajaHandler,
+    IGetResumenCajaHandler getResumenCajaHandler,
     ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet]
@@ -73,6 +74,17 @@ public class CajasController(
             EsAdmin = currentUser.IsAdmin,
             PageIndex = pageIndex,
             PageSize = pageSize
+        }));
+    }
+
+    [HttpGet("{cajaId:int}/resumen")]
+    public async Task<ActionResult<CajaResumenDto>> GetResumen(int cajaId)
+    {
+        return Ok(await getResumenCajaHandler.Handle(new GetResumenCajaQuery
+        {
+            CajaId = cajaId,
+            UsuarioId = currentUser.UserId,
+            EsAdmin = currentUser.IsAdmin
         }));
     }
 

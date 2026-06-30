@@ -86,9 +86,22 @@ export class PosApp {
         TotalPages: 0
       },
       cajaActual: null,
+      cajaResumen: null,
       lastClosedCaja: null,
       configuraciones: [],
       configuracionTicket: null,
+      backupConfiguration: null,
+      impuestos: [],
+      impuestosListPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 5,
+        TotalItems: 0,
+        TotalPages: 0
+      },
+      impuestosEstado: "activos",
+      impuestosResumen: null,
+      impuestosError: "",
       impresoras: [],
       impresorasError: "",
       reportes: {
@@ -96,8 +109,24 @@ export class PosApp {
         ventas: [],
         topProductos: []
       },
+      reportesVentasPage: {
+        Items: [],
+        PageIndex: 1,
+        PageSize: 8,
+        TotalItems: 0,
+        TotalPages: 1
+      },
       cart: [],
-      reportFilters: loadJson(STORAGE_KEYS.reportFilters, { fechaDesde: "", fechaHasta: "" })
+      reportFilters: {
+        fechaDesde: "",
+        fechaHasta: "",
+        usuarioId: "",
+        medioPagoId: "",
+        clienteId: "",
+        totalMinimo: "",
+        totalMaximo: "",
+        ...loadJson(STORAGE_KEYS.reportFilters, {})
+      }
     };
 
     this.api = new ApiClient({
@@ -188,10 +217,16 @@ export class PosApp {
     this.els.usuariosEstadoFilter.addEventListener("change", () => this.resetUsuariosPageAndRender());
     this.els.mediosPagoFilterInput.addEventListener("input", () => this.resetMediosPagoPageAndRender());
     this.els.mediosPagoEstadoFilter.addEventListener("change", () => this.resetMediosPagoPageAndRender());
-    this.els.ventaSearchInput.addEventListener("input", () => this.renderProductosVenta());
+    this.els.ventaSearchInput.addEventListener("input", () => this.scheduleRenderProductosVenta());
     this.els.ventaSearchInput.addEventListener("keydown", event => this.handleVentaSearchKeydown(event));
+    this.els.ventaScanButton?.addEventListener("click", () => {
+      this.els.ventaSearchInput.focus();
+      this.els.ventaSearchInput.select();
+    });
     this.els.ventaDescuentoInput.addEventListener("input", () => this.renderCart());
     this.els.ventaRecargoInput.addEventListener("input", () => this.renderCart());
+    this.els.ventaNotaToggle?.addEventListener("click", () => this.toggleVentaNote());
+    this.els.printLastTicketButton?.addEventListener("click", () => this.printLastVentaTicket());
     this.els.mobileMenuButton.addEventListener("click", () => this.toggleMenu(true));
     this.els.mobileMenuClose.addEventListener("click", () => this.toggleMenu(false));
     this.els.mobileBackdrop.addEventListener("click", () => this.toggleMenu(false));
@@ -210,9 +245,12 @@ export class PosApp {
     this.els.newUsuarioButton.addEventListener("click", () => this.openEntityModal("usuario"));
     this.els.newMedioPagoButton.addEventListener("click", () => this.openEntityModal("medioPago"));
     this.els.presetTodayButton.addEventListener("click", () => this.applyReportPreset("today"));
+    this.els.presetYesterdayButton.addEventListener("click", () => this.applyReportPreset("yesterday"));
     this.els.presetWeekButton.addEventListener("click", () => this.applyReportPreset("week"));
     this.els.presetMonthButton.addEventListener("click", () => this.applyReportPreset("month"));
-    this.els.exportVentasCsvButton.addEventListener("click", () => this.exportVentasCsv());
+    this.els.reportesFilterForm.querySelector("[data-report-custom-toggle]")?.addEventListener("click", () => this.toggleReportCustomDates());
+    this.bindReportDatePickers();
+    this.els.exportVentasCsvButton.addEventListener("click", () => this.exportReportSummaryCsv());
 
     this.els.navLinks.forEach(link => {
       link.addEventListener("click", () => {
@@ -227,6 +265,7 @@ export class PosApp {
 
     this.els.abrirCajaForm.addEventListener("submit", event => this.handleAbrirCaja(event));
     this.els.cerrarCajaForm.addEventListener("submit", event => this.handleCerrarCaja(event));
+    this.els.printCajaResumenButton.addEventListener("click", () => this.printCajaResumen());
     this.els.movimientoCajaForm.addEventListener("submit", event => this.handleMovimientoCaja(event));
     this.els.configuracionForm.addEventListener("submit", event => this.handleConfiguracion(event));
     this.els.reportesFilterForm.addEventListener("submit", event => this.handleReportFilter(event));
@@ -299,6 +338,7 @@ export class PosApp {
       { label: "caja", run: () => this.loadCaja() },
       { label: "historial de cajas", run: () => this.loadHistorialCajas() },
       { label: "configuracion", run: () => this.loadConfiguracion() },
+      { label: "configuracion de respaldo", run: () => this.loadBackupConfiguration({ silent: true }) },
       { label: "dashboard", run: () => this.loadDashboard() },
       { label: "reportes", run: () => this.loadReportes() }
     ];
@@ -349,7 +389,7 @@ export class PosApp {
           this.renderConfiguracionView();
           break;
         case "reportes":
-          await Promise.all([this.loadReportes(), this.loadVentas()]);
+          await Promise.all([this.loadReportes(), this.loadVentas(), this.loadUsuarios(), this.loadMediosPago(), this.loadClientes()]);
           this.renderReportesView();
           break;
         default:
@@ -380,7 +420,10 @@ export class PosApp {
 
     this.els.navLinks.forEach(link => link.classList.toggle("active", link.dataset.view === allowedView));
     this.els.appShell.classList.toggle("config-active", allowedView === "configuracion");
+    this.els.appShell.classList.remove("view-dashboard", "view-ventas", "view-productos", "view-caja", "view-reportes", "view-configuracion");
+    this.els.appShell.classList.add(`view-${allowedView}`);
     this.els.viewSections.forEach(section => section.classList.toggle("hidden", section.id !== `${allowedView}View`));
+    this.updateSidebarBackupCard();
 
     const currentMeta = VIEW_TITLES[allowedView] || VIEW_TITLES.dashboard;
     if (this.els.viewTitle) this.els.viewTitle.textContent = currentMeta.title;

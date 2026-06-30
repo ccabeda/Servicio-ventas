@@ -21,6 +21,7 @@ public class CreateVentaHandler(
     IProductoRepositoryCommand productoCommandRepo,
     IMovimientoStockRepositoryCommand movimientoStockCommandRepo,
     IMedioPagoRepositoryQuery medioPagoQueryRepo,
+    IImpuestoRepositoryQuery impuestoQueryRepo,
     IClienteRepositoryQuery clienteQueryRepo,
     IConfiguracionNegocioRepositoryQuery configuracionQueryRepo,
     IClock clock,
@@ -72,6 +73,8 @@ public class CreateVentaHandler(
             throw new InvalidOperationException("Uno o más productos no existen.");
 
         var productosPorId = productos.ToDictionary(x => x.Id);
+        var aplicarImpuestos = configuracion?.AplicarImpuestosEnVentas != false;
+        var impuestoPredeterminado = aplicarImpuestos ? await impuestoQueryRepo.GetPredeterminadoAsync() : null;
 
         var detalles = new List<VentaDetalle>();
         decimal subtotal = 0;
@@ -85,6 +88,9 @@ public class CreateVentaHandler(
                 throw new InvalidOperationException($"Stock insuficiente para el producto {producto.Nombre}.");
 
             var itemSubtotal = producto.Precio * item.Cantidad;
+            var impuesto = aplicarImpuestos ? ResolveImpuesto(producto, impuestoPredeterminado) : null;
+            var importeNeto = CalculateImporteNeto(itemSubtotal, impuesto?.Porcentaje ?? 0m);
+            var importeImpuesto = itemSubtotal - importeNeto;
             subtotal += itemSubtotal;
 
             detalles.Add(new VentaDetalle
@@ -93,7 +99,12 @@ public class CreateVentaHandler(
                 Producto = producto,
                 Cantidad = item.Cantidad,
                 PrecioUnitario = producto.Precio,
-                Subtotal = itemSubtotal
+                Subtotal = itemSubtotal,
+                ImpuestoId = impuesto?.Id,
+                ImpuestoNombre = impuesto?.Nombre ?? "Sin impuesto",
+                ImpuestoPorcentaje = impuesto?.Porcentaje ?? 0m,
+                ImporteNeto = importeNeto,
+                ImporteImpuesto = importeImpuesto
             });
 
             producto.Stock -= item.Cantidad;
@@ -177,5 +188,26 @@ public class CreateVentaHandler(
         };
 
         return step <= 0 ? Math.Round(total, 2) : Math.Round(Math.Round(total / step, 0, MidpointRounding.AwayFromZero) * step, 2);
+    }
+
+    private static Impuesto? ResolveImpuesto(Producto producto, Impuesto? predeterminado)
+    {
+        return producto.Impuesto?.Activo == true
+            ? producto.Impuesto
+            : producto.Categoria?.Impuesto?.Activo == true
+                ? producto.Categoria.Impuesto
+                : predeterminado?.Activo == true
+                    ? predeterminado
+                    : null;
+    }
+
+    private static decimal CalculateImporteNeto(decimal importeFinal, decimal porcentaje)
+    {
+        if (porcentaje <= 0)
+        {
+            return Math.Round(importeFinal, 2);
+        }
+
+        return Math.Round(importeFinal / (1 + porcentaje / 100m), 2);
     }
 }

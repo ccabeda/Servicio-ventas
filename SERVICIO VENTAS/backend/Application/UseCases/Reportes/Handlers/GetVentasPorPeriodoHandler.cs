@@ -1,4 +1,5 @@
 using ServicioVentas.Application.DTOs.Reportes;
+using ServicioVentas.Application.DTOs.Common;
 using ServicioVentas.Application.IHandlers;
 using ServicioVentas.Application.IRepository.IQuery;
 using ServicioVentas.Application.UseCases.Reportes.Queries;
@@ -15,7 +16,26 @@ public class GetVentasPorPeriodoHandler(IReporteRepositoryQuery reporteRepositor
             query.FechaHasta,
             query.CajaId,
             query.UsuarioId,
-            query.MedioPagoId);
+            query.MedioPagoId,
+            query.ClienteId,
+            query.TotalMinimo,
+            query.TotalMaximo);
+    }
+
+    public async Task<PagedResultDto<VentaReporteDto>> HandlePaged(GetVentasPorPeriodoQuery query)
+    {
+        ValidarRango(query.FechaDesde, query.FechaHasta);
+        return await reporteRepositoryQuery.GetVentasPorPeriodoPagedAsync(
+            query.FechaDesde,
+            query.FechaHasta,
+            query.CajaId,
+            query.UsuarioId,
+            query.MedioPagoId,
+            query.ClienteId,
+            query.TotalMinimo,
+            query.TotalMaximo,
+            query.PageIndex,
+            query.PageSize);
     }
 
     private static void ValidarRango(DateTime? fechaDesde, DateTime? fechaHasta)
